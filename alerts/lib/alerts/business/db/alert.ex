@@ -10,9 +10,9 @@ defmodule Alerts.Business.DB.Alert do
   require Crontab.CronExpression.Parser
 
   alias Alerts.Business.Alerts
-  
+
   @primary_key {:id, :id, autogenerate: true}
-  schema "pyz_alert" do
+  schema "alert" do
     field(:context, :string)
     field(:name, :string)
     field(:query, :string)
@@ -32,7 +32,7 @@ defmodule Alerts.Business.DB.Alert do
     field(:status, :string)
 
     field(:repo, :string)
-    
+
     field(:path, :string)
   end
 
@@ -57,11 +57,12 @@ defmodule Alerts.Business.DB.Alert do
   end
 
   def run_changeset(%__MODULE__{} = record, params) do
-    changeset = record
-    |> C.change(last_run: nowNaive())
-    |> C.force_change(:results_size, params["results_size"])
-    |> C.cast(params, [:results, :results_size])
-    
+    changeset =
+      record
+      |> C.change(last_run: nowNaive())
+      |> C.force_change(:results_size, params["results_size"])
+      |> C.cast(params, [:results, :results_size])
+
     changeset
     |> C.change(status: get_status(changeset.changes, changeset.data))
     |> C.validate_required([:last_run])
@@ -106,12 +107,12 @@ defmodule Alerts.Business.DB.Alert do
       end
     end)
   end
-    
-  def get_status(:new), do: "never run" 
+
+  def get_status(:new), do: "never run"
   def get_status(:updated), do: "never refreshed"
   def get_status(%{results_size: -1}, _), do: "broken"
   def get_status(%{results_size: 0}, _), do: "good"
-  def get_status(%{results_size: size}, %__MODULE__{threshold: thr})  when size >= thr, do: "bad"
+  def get_status(%{results_size: size}, %__MODULE__{threshold: thr}) when size >= thr, do: "bad"
   def get_status(%{results_size: _size}, %__MODULE__{threshold: _thr}), do: "under threshold"
   def get_status(_c, _a), do: "exception!!!!!!"
 end

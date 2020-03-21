@@ -1,0 +1,26 @@
+/* This file is for your main application css. */
+
+
+.container2 { margin-left:25px;margin-right:25px;}
+
+.help-block {color:red !important;}
+
+.form-group.required .control-label:after {
+  content:" *";
+  color: blue;
+}
+
+.sort {color:black;}
+
+.form-inline {display:inline-block;vertical-align:middle}
+.form-inline .form-control{display:inline-block;width:auto;vertical-align:middle}
+.form-inline .form-control-static{display:inline-block}
+.form-inline .input-group{display:inline-table;vertical-align:middle}
+.form-inline .input-group .form-control,.form-inline .input-group .input-group-addon,.form-inline .input-group .input-group-btn{width:auto}
+.form-inline .input-group>.form-control{width:100%}
+.form-inline .control-label{margin-bottom:0;vertical-align:middle}
+.form-inline .checkbox,.form-inline .radio{display:inline-block;margin-top:0;margin-bottom:0;vertical-align:middle}
+.form-inline .checkbox label,.form-inline .radio label{padding-left:0}
+.form-inline .checkbox input[type=checkbox],
+.form-inline .radio input[type=radio]{position:relative;margin-left:0}
+.form-inline .has-feedback .form-control-feedback{top:0}}

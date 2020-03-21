@@ -1,0 +1,43 @@
+version: '3.6'
+services:
+  db:
+    image: postgres
+    container_name: alerts_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5432
+    volumes:
+      - type: volume
+        source: alerts-postgres-data
+        target: /var/lib/postgresql/data
+      - type: volume
+        source: alerts-postgres-home
+        target: /nonexistent
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.PhoenixAlerts
+    container_name: alerts_phoenix
+    volumes:
+      - type: bind
+        source: ./alerts
+        target: /app
+      - type: bind
+        source: ./Files
+        target: /files
+      - type: volume
+        source: alerts-elixir-home
+        target: /nonexistent
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    command:
+      - ./bin/boot.sh
+
+volumes:
+  alerts-postgres-data:
+  alerts-postgres-home:
+  alerts-elixir-home:

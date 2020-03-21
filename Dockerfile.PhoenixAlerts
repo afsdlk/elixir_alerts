@@ -1,0 +1,39 @@
+# Elixir + Phoenix
+FROM elixir:1.10
+
+WORKDIR /app
+
+# Install debian packages
+RUN apt-get update
+RUN apt-get upgrade --yes
+RUN apt-get install --yes apt-utils build-essential
+RUN apt-get install --yes bash nano less curl inotify-tools
+RUN apt-get install --yes postgresql-client
+
+# Install node
+RUN rm -f /tmp/nodesource_setup.sh
+RUN curl -sL https://deb.nodesource.com/setup_10.x -o /tmp/nodesource_setup.sh
+RUN bash /tmp/nodesource_setup.sh
+RUN apt-get install  --yes nodejs
+RUN npm install brunch
+
+# Create folders for non existent
+RUN mkdir -p /nonexistent && chown -R 65534:65534 /nonexistent
+RUN mkdir -p /nonexistent/.mix && chown -R 65534:65534 /nonexistent/.mix
+RUN mkdir -p /nonexistent/.hex && chown -R 65534:65534 /nonexistent/.hex
+RUN mkdir -p /nonexistent/.cache && chown -R 65534:65534 /nonexistent/.cache
+RUN mkdir -p /nonexistent/.npm && chown -R 65534:65534 /nonexistent/.npm
+
+# Install Phoenix packages
+USER 65534
+RUN mix local.hex --force
+RUN mix local.rebar --force
+RUN wget https://github.com/phoenixframework/archives/raw/master/phx_new.ez -P /tmp
+RUN mix archive.install --force /tmp/phx_new.ez
+
+#RUN curl https://gist.githubusercontent.com/marioBonales/1637696/raw/93a33aa5f1893f46773483250214f8b8b496a270/.bashrc -o /nonexistent/.bashrc
+
+# final stuff
+EXPOSE 4000
+
+#ENTRYPOINT ["/alerts/bin/boot.sh"]

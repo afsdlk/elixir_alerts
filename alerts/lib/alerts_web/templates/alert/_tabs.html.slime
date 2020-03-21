@@ -1,0 +1,5 @@
+= if length(@available_contexts) > 0 do
+  ul.nav.nav-tabs
+    = for context <- @available_contexts do
+      li class="#{active_tab_class(context, @context)}" role="presentation"
+  		  = link context, to: alert_path(@conn, @action, context: context)

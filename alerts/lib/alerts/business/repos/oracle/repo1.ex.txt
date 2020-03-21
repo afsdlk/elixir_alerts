@@ -1,0 +1,5 @@
+defmodule Alerts.Business.Repos.Oracle.Repo1 do
+  use Ecto.Repo,
+    otp_app: :alerts,
+    adapter: Ecto.Adapters.Jamdb.Oracle
+end

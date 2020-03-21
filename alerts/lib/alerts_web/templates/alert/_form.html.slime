@@ -1,0 +1,43 @@
+= form_for @alert_changeset, alert_path(@conn, @action, @extra), fn f ->
+  div.required.form-group
+    = label f, :name, class: "control-label"
+    = text_input f, :name, class: "form-control"
+    = error_tag f, :name
+
+  div.required.form-group
+    = label f, :context, class: "control-label"
+    = text_input f, :context, class: "form-control"
+    = error_tag f, :context
+
+  div.required.form-group
+    = label f, :repo, class: "control-label"
+    = select f, :repo, Application.get_env(:alerts, :ecto_repos), class: "form-control"
+    = error_tag f, :repo
+    
+  div.required.form-group
+    = label f, :description, class: "control-label"
+    = textarea f, :description, class: "form-control", rows: 5
+    = error_tag f, :description
+    div.required.form-group
+
+    = label f, :query, class: "control-label"
+    = textarea f, :query, class: "form-control", rows: 5
+    = error_tag f, :query
+
+  div.form-group
+    = label f, :schedule, class: "control-label"
+    = text_input f, :schedule, class: "form-control"
+    = error_tag f, :schedule
+
+  div.form-group
+    = label f, :threshold, class: "control-label"
+    = text_input f, :threshold, class: "form-control"
+    = error_tag f, :threshold
+    
+  div.form-group
+    = label f, :path, class: "control-label"
+    = text_input f, :path, class: "form-control"
+    = error_tag f, :path
+
+  div class="form-group"
+    = submit @submit, class: "btn btn-primary"

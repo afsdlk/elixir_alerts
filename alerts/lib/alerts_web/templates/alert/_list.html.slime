@@ -1,0 +1,84 @@
+= if length(@alerts) > 0 do
+	table.table.col-md-6.table-hover
+		thead
+			tr
+				th.text-left 
+          = link "name", to: alert_path(@conn, :index, context: @context, order: :name), class: "sort"  
+
+				th.text-left 
+          = link "repo", to: alert_path(@conn, :index, context: @context, order: :repo), class: "sort" 
+        
+				th.text-center description
+			
+      	th.text-center 
+          = link "rows", to: alert_path(@conn, :index, context: @context, order: :results_size), class: "sort"     
+				th.text-center threshold  
+				
+        th.text-center 
+          = link "status", to: alert_path(@conn, :index, context: @context, order: :status), class: "sort"  
+        
+				th.text-center 
+          = link "schedule", to: alert_path(@conn, :index, context: @context, order: :schedule), class: "sort" 
+        
+				th.text-center 
+          = link "path", to: alert_path(@conn, :index, context: @context, order: :path), class: "sort"     
+        
+				th.text-center actions
+				th.text-center dates
+
+		tbody
+			= for alert <- @alerts do
+				tr
+					td.text-left style="vertical-align: middle;"
+						= link alert.name, to: alert_path(@conn, :view, alert.id)
+					
+					td.text-left style="vertical-align: middle;"
+						= render_repo(alert.repo)        
+          
+          td.text-left style="vertical-align: middle;"
+						 pre style="max-width: 450px;" = alert.description
+					
+          td.text-center style="vertical-align: middle;"
+						= render_total(alert.results_size)
+          
+          td.text-center style="vertical-align: middle;"
+						= render_total(alert.threshold)
+					
+          td.text-center style="vertical-align: middle;"
+						= render_status(alert) 
+					
+          td.text-center style="vertical-align: middle;" nowrap="nowrap"
+						= render_schedule(alert)
+            
+          td.text-center style="vertical-align: middle;" nowrap="nowrap"
+            = if alert.path do
+              a href="#"
+                = Alerts.Business.Alerts.destination_folder(alert)
+            
+					td.text-center style="vertical-align: middle;" nowrap="nowrap"
+						= form_tag(alert_path(@conn, :run, alert.id), method: "post", class: "form-inline") do
+							button.btn.btn-default.btn-sm type="submit" run
+						= if alert.results_size || 0 > 0 do
+							= form_tag(alert_path(@conn, :csv, alert.id), method: "post", class: "form-inline") do
+								button.btn.btn-default.btn-sm type="submit" csv
+						= form_tag(alert_path(@conn, :edit, alert.id), method: "get", class: "form-inline") do
+							button.btn.btn-default.btn-sm type="submit" edit     
+            = form_tag(alert_path(@conn, :delete, alert.id), method: "delete", class: "form-inline") do
+					    = link "del", to: alert_path(@conn, :delete, alert.id), method: :delete, data: [confirm: "Delete alert #{alert.id}. Are you sure?"], class: "btn btn-sm btn-danger"
+          
+          	  
+          td.text-right.text-nowrap style="vertical-align: middle;"
+						div
+              b created: 
+              = render_date_relative(alert.inserted_at)
+						div
+              b updated:
+              = render_date_relative(alert.updated_at)
+						div
+              b last run:
+              = render_date_relative(alert.last_run)
+
+- else
+	br
+	br
+	p.lead No alerts found :(

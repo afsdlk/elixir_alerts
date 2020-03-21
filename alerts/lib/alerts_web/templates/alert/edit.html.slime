@@ -1,0 +1,11 @@
+h1
+	= link "Alerts", to: alert_path(@conn, :index)
+	= raw("&rarr;")
+	em
+		= link @alert.context, to: alert_path(@conn, :index, context: @alert.context)
+	= raw("&rarr;")
+	em = link "#{render_repo(@alert.repo)}: #{@alert.name}" , to: alert_path(@conn, :view, @alert.id)
+	= raw("&rarr;")
+	= "Modify"
+
+= render AlertsWeb.AlertView, "_form.html", conn: @conn, alert_changeset: @alert_changeset, action: :update, submit: "Update", extra: @alert.id

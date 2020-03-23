@@ -36,4 +36,4 @@ RUN mix archive.install --force /tmp/phx_new.ez
 # final stuff
 EXPOSE 4000
 
-#ENTRYPOINT ["/alerts/bin/boot.sh"]
+ENTRYPOINT ["/app/bin/boot.sh"]

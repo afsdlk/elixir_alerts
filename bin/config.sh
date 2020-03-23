@@ -5,7 +5,7 @@ BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
 # App container information
 MAIN_IMAGE="alerts_phoenix"
 MAIN_CONTAINER="alerts_phoenix"
-MAIN_ROOT="app"
+MAIN_CONTAINER_ROOT="app"
 HOST_ROOT="alerts"
 MAIN_DOCKERFILE="Dockerfile.PhoenixAlerts"
 
@@ -13,6 +13,8 @@ MAIN_DOCKERFILE="Dockerfile.PhoenixAlerts"
 MAIN_CONTAINER_USER_ID="-u 65534"
 PORT_FORWARD="-p 4000:4000"
 EXTRA_VOLUMES="-v dsman-home:/nonexistent"
+EXTRA_MOUNT='files'
+NETWORK="--network=alerts_default"
 
 # Database container information
 DB_USER_ID="-u postgres"

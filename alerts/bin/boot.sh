@@ -3,7 +3,7 @@ set -e
 
 # Wait for Postgres to become available.
 export PGPASSWORD=postgres
-until psql -p 5432 -h db -U "postgres" -c '\q' 2>/dev/null; do
+until psql -p 5432 -h alerts_db -U "postgres" -c '\q' 2>/dev/null; do
   >&2 echo "\nPostgres is unavailable - sleeping"
   sleep 1
 done

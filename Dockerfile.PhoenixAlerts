@@ -8,9 +8,14 @@ RUN apt-get update
 RUN apt-get upgrade --yes
 RUN apt-get install --yes apt-utils build-essential
 RUN apt-get install --yes bash nano less curl inotify-tools
-RUN apt-get install --yes postgresql-client
-RUN apt-get install --yes odbc-postgresql default-libmysqlclient-dev unixodbc odbcinst 
+RUN apt-get install --yes postgresql-client default-libmysqlclient-dev
+RUN apt-get install --yes unixodbc odbcinst
+RUN apt-get install --yes odbc-postgresql
 
+ADD ./alerts/bin /app/bin
+RUN chmod +x /app/bin/install-odbc-mysql.sh
+
+RUN /app/bin/install-odbc-mysql.sh
 
 # Install node
 RUN rm -f /tmp/nodesource_setup.sh

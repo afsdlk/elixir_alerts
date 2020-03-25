@@ -21,3 +21,22 @@ lala
 :odbc.commit(db_pid, :rollback)
 :odbc.disconnect(db_pid)
 :odbc.stop()
+
+:odbc.start()
+odbcstring = 'Driver=MySql;Server=mysql;Trusted_Connection=False;Database=mysql;UID=root;PWD=mysql;'
+{:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
+{:selected, columns, rows} = :odbc.param_query(db_pid,'select * from db;',[])
+rows
+:odbc.commit(db_pid, :rollback)
+:odbc.disconnect(db_pid)
+:odbc.stop()
+
+rows |> Enum.map(fn tuple -> tuple |> Tuple.to_list() |> Enum.map(&IO.inspect/1) end)
+
+# mysql docker container
+docker run --rm --network=alerts_default --name mysql -e MYSQL_ROOT_PASSWORD=mysql -p 3306:3306 mysql:latest
+docker exec -it mysql bash -c "mysql -pmysql mysql"
+
+CREATE USER 'root'@'%' IDENTIFIED BY 'mysql';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;

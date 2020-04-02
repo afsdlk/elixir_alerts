@@ -22,9 +22,11 @@ defmodule Alerts.Business.Files do
   defp fullname(%DB.Alert{} = alert), do: "#{basename(alert)}/#{filename(alert)}"
 
   def basename(%DB.Alert{} = alert), do: "#{@base_folder}/#{alert.path}"
+
   def create_folder(%DB.Alert{path: nil}), do: nil
   def create_folder(%DB.Alert{path: ""}), do: nil
   def create_folder(%DB.Alert{} = a), do: a |> basename() |> File.mkdir_p!()
+
   def write(%DB.Alert{path: nil}, _), do: nil
   def write(%DB.Alert{path: ""}, _), do: nil
   def write(%DB.Alert{} = a, content), do: fullname(a) |> File.open!(@flags) |> IO.write(content)

@@ -13,12 +13,16 @@ defmodule Alerts.Business.Alerts do
 
   def get!(alert_id), do: DB.Alert |> Alerts.Repo.get!(alert_id)
 
+  def delete(alert_id) do
+    :ok = alert_id |> get!() |> Alerts.Repo.delete!() |> delete_job()
+  end
+
   def change(), do: DB.Alert.new_changeset(%DB.Alert{}, %{})
   def change(%DB.Alert{} = alert), do: DB.Alert.modify_changeset(alert, %{})
 
   def create(params) do
     with {:ok, inserted} <- %DB.Alert{} |> DB.Alert.new_changeset(params) |> Alerts.Repo.insert() do
-      save_job(inserted.id, inserted.schedule)
+      save_job(inserted)
       create_folder(inserted)
       {:ok, inserted}
     else
@@ -28,7 +32,7 @@ defmodule Alerts.Business.Alerts do
 
   def update(%DB.Alert{} = alert, params) do
     with {:ok, updated} <- alert |> DB.Alert.modify_changeset(params) |> Alerts.Repo.update() do
-      update_job(updated.id, updated.schedule)
+      update_job(updated)
       create_folder(updated)
       {:ok, updated}
     else
@@ -36,7 +40,11 @@ defmodule Alerts.Business.Alerts do
     end
   end
 
-  def get_job_name(alert_id), do: "alert_#{alert_id}" |> String.to_atom()
+  defp get_job_name(%DB.Alert{} = alert), do: get_job_name(alert.id)
+  defp get_job_name(alert_id), do: "alert_#{alert_id}" |> String.to_atom()
+
+  defp get_function(%DB.Alert{} = alert, :definition), do: {__MODULE__, :run, [alert.id]}
+  defp get_function(%DB.Alert{} = alert), do: fn -> run(alert.id) end
 
   def get_all_alert_jobs_config do
     DB.Alert.scheduled_alerts()
@@ -51,8 +59,8 @@ defmodule Alerts.Business.Alerts do
           acc ++
             [
               Jobs.get_quantum_config(
-                alert.id |> get_job_name(),
-                {Alerts.Business.Alerts, :run, [alert.id]},
+                get_job_name(alert),
+                get_function(alert, :definition),
                 alert.schedule
               )
             ]
@@ -60,35 +68,22 @@ defmodule Alerts.Business.Alerts do
     end)
   end
 
-  def delete_job(alert_id), do: alert_id |> get_job_name() |> Jobs.delete()
+  def save_job(%DB.Alert{schedule: nil}, _), do: :ok
+  def save_job(%DB.Alert{schedule: ""}, _), do: :ok
 
-  def delete(alert_id) do
-    alert =
-      alert_id
-      |> get!()
-      |> Alerts.Repo.delete!()
-
-    :ok = delete_job(alert_id)
-
-    alert
+  def save_job(%DB.Alert{} = alert) do
+    :ok = alert |> get_job_name() |> Jobs.save(get_function(alert), alert.schedule)
   end
 
-  def update_job(alert_id, schedule) do
-    :ok = delete_job(alert_id)
-    :ok = save_job(alert_id, schedule)
+  def update_job(alert) do
+    :ok = delete_job(alert)
+    :ok = save_job(alert)
   end
 
-  def save_job(_alert_id, nil), do: :ok
-
-  def save_job(alert_id, schedule) do
-    task = fn -> run(alert_id) end
-    :ok = Jobs.save(alert_id |> get_job_name(), task, schedule)
-  end
+  def delete_job(alert), do: alert |> get_job_name() |> Jobs.delete()
 
   def alerts_in_context(context, order) do
-    context
-    |> DB.Alert.alerts_in_context(order)
-    |> Alerts.Repo.all()
+    context |> DB.Alert.alerts_in_context(order) |> Alerts.Repo.all()
   end
 
   def run_query(query, repo) do
@@ -142,12 +137,10 @@ defmodule Alerts.Business.Alerts do
       end
 
     num_rows =
-      case alert_results.rows,
-        do:
-          (
-            nil -> -1
-            _ -> alert_results.num_rows
-          )
+      case alert_results.rows do
+        nil -> -1
+        _ -> alert_results.num_rows
+      end
 
     write_file(alert, content_csv)
 
@@ -163,10 +156,7 @@ defmodule Alerts.Business.Alerts do
   end
 
   def destination_filename(alert), do: alert |> destination_filename(Timex.now())
-
-  def destination_filename(alert, :use_last_run) do
-    alert |> destination_filename(alert.last_run)
-  end
+  def destination_filename(alert, :last_run), do: alert |> destination_filename(alert.last_run)
 
   def destination_filename(alert, date) do
     ([
@@ -178,22 +168,16 @@ defmodule Alerts.Business.Alerts do
      |> Enum.join("-")) <> ".csv"
   end
 
-  def destination_folder(%DB.Alert{path: nil}), do: nil
-  def destination_folder(%DB.Alert{path: ""}), do: nil
-
   def destination_folder(%DB.Alert{} = alert) do
     "#{Application.get_env(:alerts, :export_folder)}/#{alert.path}"
   end
 
-  def create_folder(alert) do
-    case destination_folder(alert) do
-      nil ->
-        {:ok}
+  def create_folder(%DB.Alert{path: nil}), do: nil
+  def create_folder(%DB.Alert{path: ""}), do: nil
 
-      folder ->
-        folder |> File.mkdir_p!()
-        {:ok}
-    end
+  def create_folder(%DB.Alert{} = alert) do
+    alert |> destination_folder() |> File.mkdir_p!()
+    {:ok}
   end
 
   def write_file(%DB.Alert{path: nil}, _), do: nil

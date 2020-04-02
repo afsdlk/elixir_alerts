@@ -23,7 +23,7 @@ lala
 :odbc.stop()
 
 :odbc.start()
-odbcstring = 'Driver=MySql;Server=mysql;Trusted_Connection=False;Database=mysql;UID=root;PWD=mysql;'
+odbcstring = 'Driver=MySQL UNICODE;Server=mysql;Trusted_Connection=False;Database=mysql;UID=root;PWD=mysql;'
 {:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
 {:selected, columns, rows} = :odbc.param_query(db_pid,'select * from db;',[])
 rows

@@ -74,7 +74,3 @@ config :alerts, Alerts.Repo,
 #  database: "ORCLCDB",
 #  hostname: "172.17.0.1",
 #  port: 1521
-
-# General application configuration
-config :alerts,
-  ecto_repos: [Alerts.Repo]

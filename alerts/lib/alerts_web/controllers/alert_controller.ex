@@ -1,6 +1,7 @@
 defmodule AlertsWeb.AlertController do
   use AlertsWeb, :controller
 
+  alias Alerts.Business.Files
   alias Alerts.Business.Alerts
 
   def index(conn, params) do
@@ -90,7 +91,7 @@ defmodule AlertsWeb.AlertController do
 
   def csv(conn, %{"id" => alert_id}) do
     alert = Alerts.get!(alert_id)
-    filename = Alerts.destination_filename(alert, :last_run)
+    filename = Files.filename(alert, :last_run)
 
     conn
     |> put_resp_content_type("text/csv")

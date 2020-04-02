@@ -6,10 +6,10 @@ defmodule Alerts.Business.Files do
   @extension ".csv"
   @date_format "{YYYY}{0M}{0D}_{h24}{m}{s}"
 
-  defp filename(%DB.Alert{} = a), do: a |> filename(Timex.now())
-  defp filename(%DB.Alert{} = a, :last_run), do: a |> filename(a.last_run)
+  def filename(%DB.Alert{} = a), do: a |> filename(Timex.now())
+  def filename(%DB.Alert{} = a, :last_run), do: a |> filename(a.last_run)
 
-  defp filename(%DB.Alert{id: id, name: name}, date) do
+  def filename(%DB.Alert{id: id, name: name}, date) do
     ([
        Slugger.slugify_downcase(name),
        id,

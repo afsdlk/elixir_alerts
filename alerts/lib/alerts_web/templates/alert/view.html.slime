@@ -6,10 +6,10 @@ h1
 	= raw("&rarr;")
 	em = "#{render_repo(@alert.repo)}: #{@alert.name}"
 
-p 
+p
   = "Time right now:"
   = "Europe/Paris" |> Timex.now() |> Timex.format!("%Y-%m-%d %H:%M:%S", :strftime)
-  
+
 p.text-right
 	= link "Modify this alert", to: alert_path(@conn, :edit, @alert.id), method: :get, class: "btn btn-default btn-primary"
 	= link "Delete this alert", to: alert_path(@conn, :delete, @alert.id), method: :delete, data: [confirm: "Delete alert #{@alert.id}. Are you sure?"], class: "btn btn-danger"
@@ -28,12 +28,12 @@ div.col-md-6
 				td = render_status(@alert)
 
 			tr
-				th.text-right style="vertical-align:middle;" 
+				th.text-right style="vertical-align:middle;"
 					= form_tag(alert_path(@conn, :run, @alert.id, [follow: :run]), class: "form-inline") do
 						button.btn.btn-default.font-weight-bold type="submit" run
 				td style="vertical-align:middle;"
 					= render_date(@alert.last_run)
-					
+
 			= if @alert.results_size || 0 > 0 do
 				tr
 					th.text-right style="vertical-align:middle;"
@@ -45,14 +45,14 @@ div.col-md-6
 			tr
 				th.text-right style="vertical-align:middle;" Threshold
         td = @alert.threshold
-       
+
       = if @alert.path do
 		    tr
 			    th.text-right style="vertical-align:middle;" Export to path
           td
             a href="#"
-              = Alerts.Business.Alerts.destination_folder(@alert)
-                
+              = Alerts.Business.Files.basename(@alert)
+
 			tr
 				th.text-right style="vertical-align:middle;" Schedule
 				td = render_schedule(@alert)

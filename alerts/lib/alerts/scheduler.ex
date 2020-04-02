@@ -9,6 +9,8 @@ defmodule Alerts.Scheduler do
         opts
 
       false ->
+        delete_all_jobs()
+
         opts_with_jobs =
           List.delete(opts, List.keyfind(opts, :jobs, 0)) ++
             [jobs: Alerts.Business.Alerts.get_all_alert_jobs_config()]

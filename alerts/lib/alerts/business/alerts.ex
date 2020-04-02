@@ -2,8 +2,8 @@ defmodule Alerts.Business.Alerts do
   require Alerts.Repo
   require Logger
 
-  alias Alerts.Scheduler
   alias Alerts.Business.DB
+  alias Alerts.Business.Jobs
 
   def contexts do
     DB.Alert.contexts()
@@ -18,7 +18,7 @@ defmodule Alerts.Business.Alerts do
 
   def create(params) do
     with {:ok, inserted} <- %DB.Alert{} |> DB.Alert.new_changeset(params) |> Alerts.Repo.insert() do
-      save_scheduler(inserted.id, inserted.schedule)
+      save_job(inserted.id, inserted.schedule)
       create_folder(inserted)
       {:ok, inserted}
     else
@@ -28,7 +28,7 @@ defmodule Alerts.Business.Alerts do
 
   def update(%DB.Alert{} = alert, params) do
     with {:ok, updated} <- alert |> DB.Alert.modify_changeset(params) |> Alerts.Repo.update() do
-      update_scheduler(updated.id, updated.schedule)
+      update_job(updated.id, updated.schedule)
       create_folder(updated)
       {:ok, updated}
     else
@@ -36,9 +36,9 @@ defmodule Alerts.Business.Alerts do
     end
   end
 
-  def get_all_alert_jobs_config do
-    Scheduler.delete_all_jobs()
+  def get_job_name(alert_id), do: "alert_#{alert_id}" |> String.to_atom()
 
+  def get_all_alert_jobs_config do
     DB.Alert.scheduled_alerts()
     |> Alerts.Repo.all()
     |> Enum.reduce([], fn alert, acc ->
@@ -48,22 +48,19 @@ defmodule Alerts.Business.Alerts do
           acc
 
         _ ->
-          acc ++ [get_quantum_config(alert)]
+          acc ++
+            [
+              Jobs.get_quantum_config(
+                alert.id |> get_job_name(),
+                {Alerts.Business.Alerts, :run, [alert.id]},
+                alert.schedule
+              )
+            ]
       end
     end)
   end
 
-  def get_quantum_config(%DB.Alert{} = alert) do
-    %Quantum.Job{
-      name: "alert_#{alert.id}" |> String.to_atom(),
-      overlap: false,
-      run_strategy: %Quantum.RunStrategy.Random{nodes: :cluster},
-      schedule: Crontab.CronExpression.Parser.parse!(alert.schedule),
-      state: :active,
-      task: {__MODULE__, :run, [alert.id]},
-      timezone: :utc
-    }
-  end
+  def delete_job(alert_id), do: alert_id |> get_job_name() |> Jobs.delete()
 
   def delete(alert_id) do
     alert =
@@ -71,46 +68,26 @@ defmodule Alerts.Business.Alerts do
       |> get!()
       |> Alerts.Repo.delete!()
 
-    :ok =
-      "alert_#{alert_id}"
-      |> String.to_atom()
-      |> Scheduler.delete_job()
+    :ok = delete_job(alert_id)
 
     alert
   end
 
-  def update_scheduler(id, nil) do
-    name = "alert_#{id}" |> String.to_atom()
-    :ok = name |> Scheduler.delete_job()
+  def update_job(alert_id, schedule) do
+    :ok = delete_job(alert_id)
+    :ok = save_job(alert_id, schedule)
   end
 
-  def update_scheduler(id, schedule) do
-    name = "alert_#{id}" |> String.to_atom()
-    :ok = name |> Scheduler.delete_job()
+  def save_job(_alert_id, nil), do: :ok
 
-    :ok =
-      Scheduler.new_job()
-      |> Quantum.Job.set_name(name)
-      |> Quantum.Job.set_schedule(Crontab.CronExpression.Parser.parse!(schedule))
-      |> Quantum.Job.set_task(fn -> run(id) end)
-      |> Scheduler.add_job()
-  end
-
-  def save_scheduler(_id, nil), do: :ok
-
-  def save_scheduler(id, schedule) do
-    name = "alert_#{id}" |> String.to_atom()
-
-    :ok =
-      Scheduler.new_job()
-      |> Quantum.Job.set_name(name)
-      |> Quantum.Job.set_schedule(Crontab.CronExpression.Parser.parse!(schedule))
-      |> Quantum.Job.set_task(fn -> run(id) end)
-      |> Scheduler.add_job()
+  def save_job(alert_id, schedule) do
+    task = fn -> run(alert_id) end
+    :ok = Jobs.save(alert_id |> get_job_name(), task, schedule)
   end
 
   def alerts_in_context(context, order) do
-    DB.Alert.alerts_in_context(context, order)
+    context
+    |> DB.Alert.alerts_in_context(order)
     |> Alerts.Repo.all()
   end
 

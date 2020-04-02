@@ -62,3 +62,13 @@ config :logger, level: :info
 # Finally import the config/prod.secret.exs
 # which should be versioned separately.
 import_config "prod.secret.exs"
+
+# Configure your database
+config :alerts, Alerts.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  username: "postgres",
+  password: "postgres",
+  database: "alerts_prod",
+  hostname: "db",
+  port: 5432,
+  pool_size: 10

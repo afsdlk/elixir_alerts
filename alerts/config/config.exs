@@ -31,13 +31,3 @@ import_config "#{Mix.env()}.exs"
 
 # General application configuration
 config :alerts, ecto_repos: [Alerts.Repo]
-
-# Configure your database
-config :alerts, Alerts.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "alerts_dev",
-  hostname: "db",
-  port: 5432,
-  pool_size: 10

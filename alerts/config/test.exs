@@ -8,6 +8,7 @@ config :alerts, AlertsWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+config :logger, :console, format: "$time - [$level] $message\n"
 
 # Configure your database
 config :alerts, Alerts.Repo,
@@ -18,6 +19,3 @@ config :alerts, Alerts.Repo,
   hostname: "db",
   port: 5432,
   pool: Ecto.Adapters.SQL.Sandbox
-
-config :alerts,
-  ecto_repos: [Alerts.Repo]  

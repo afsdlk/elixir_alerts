@@ -56,6 +56,13 @@ config :logger, :console, format: "[$level] $message\n"
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
+# config :alerts, Alerts.Business.Repos.Oracle.Repo1,
+#  adapter: Ecto.Adapters.Jamdb.Oracle,
+#  username: "SYSTEM",
+#  password: "aaaa",
+#  database: "ORCLCDB",
+#  hostname: "172.17.0.1",
+#  port: 1521
 
 # Configure your database
 config :alerts, Alerts.Repo,
@@ -66,11 +73,3 @@ config :alerts, Alerts.Repo,
   hostname: "db",
   port: 5432,
   pool_size: 10
-
-# config :alerts, Alerts.Business.Repos.Oracle.Repo1,
-#  adapter: Ecto.Adapters.Jamdb.Oracle,
-#  username: "SYSTEM",
-#  password: "aaaa",
-#  database: "ORCLCDB",
-#  hostname: "172.17.0.1",
-#  port: 1521

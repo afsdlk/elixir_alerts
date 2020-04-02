@@ -10,6 +10,12 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
+require Logger
+
+old_level = Logger.level()
+Logger.configure(level: :info)
+Logger.info("Adding test fixtures")
+
 a1 = %Alerts.Business.DB.Alert{
   id: 1,
   context: "TESTS",
@@ -29,3 +35,6 @@ a1 = %Alerts.Business.DB.Alert{
 }
 
 Alerts.Repo.insert!(a1)
+
+Logger.info("Test fixtures ADDED")
+Logger.configure(level: old_level)

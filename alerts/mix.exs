@@ -67,7 +67,7 @@ defmodule Alerts.Mixfile do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: [
         "ecto.drop",
-        "ecto.create --quiet",
+        "ecto.create",
         "ecto.migrate",
         "run test/repo/seeds.exs",
         "test"

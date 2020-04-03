@@ -7,7 +7,7 @@ defmodule AlertsWeb.Endpoint do
     signing_salt: "CW9blwzj"
   ]
 
-  socket("/socket", AlertsWeb.UserSocket)
+  socket("/socket", AlertsWeb.UserSocket, websocket: [])
 
   # Serve at "/" the static files from "priv/static" directory.
   #

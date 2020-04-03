@@ -31,3 +31,11 @@ import_config "#{Mix.env()}.exs"
 
 # General application configuration
 config :alerts, ecto_repos: [Alerts.Repo]
+
+config :swarm,
+  nodes: [:":nonode@nohost"],
+  sync_nodes_timeout: 0
+
+config :alerts, Alerts.Scheduler,
+  run_strategy: Quantum.RunStrategy.Local,
+  debug_logging: false

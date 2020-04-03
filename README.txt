@@ -40,17 +40,3 @@ docker exec -it mysql bash -c "mysql -pmysql mysql"
 CREATE USER 'root'@'%' IDENTIFIED BY 'mysql';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
-
-send(self(), :polla)
-receive do {:ok, _sender, message} -> IO.puts(message) end
-
-
-defmodule SendingProcess do
-  def run(pid, name) do
-  :timer.sleep(5000)
-    send(pid, name)
-  end
-end
-name = :lalala
-Alerts.Business.Jobs.save(name, fn -> SendingProcess.run(self(), name) end, "@reboot")
-receive do {:ok, _sender, message} -> IO.puts(message) end

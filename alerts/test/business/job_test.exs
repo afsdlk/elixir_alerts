@@ -14,11 +14,22 @@ defmodule Business.JobsTest do
 
   defmodule(SendingProcess, do: def(run(pid, name), do: send(pid, name)))
 
-  test "Test save" do
+  test "Test save job" do
     name = random_name()
     pid = self()
-    J.save(name, fn -> SendingProcess.run(pid, name) end, "@reboot")
 
+    assert name
+           |> J.save(fn -> SendingProcess.run(pid, name) end, "@reboot")
+           |> Alerts.Scheduler.find_job() !== nil
+
+    assert_receive name, 2_000
+
+    assert random_name()
+           |> J.save(fn -> :ok end, "")
+           |> Alerts.Scheduler.find_job() == nil
+  end
+
+  test "Test save job errors" do
     assert_raise FunctionClauseError, ~r/^.*Quantum.Job.set_name.*$/, fn ->
       J.save("string instead of atom", fn -> :ok end, "@reboot")
     end
@@ -26,34 +37,39 @@ defmodule Business.JobsTest do
     assert_raise RuntimeError, ~r/^Can't parse .* as minute.$/, fn ->
       J.save(:atom, fn -> :ok end, "wrong schedule")
     end
-
-    assert Alerts.Scheduler.find_job(name) !== nil
-    assert_receive name, 1_000
   end
 
-  test "Test delete" do
-    name = random_name()
-    J.save(name, fn -> :ok end, "@reboot")
-    J.delete(name)
-    assert Alerts.Scheduler.find_job(name) == nil
+  test "Test deleting a job" do
+    assert random_name()
+           |> J.save(fn -> :ok end, "@reboot")
+           |> J.delete()
+           |> Alerts.Scheduler.find_job() == nil
+
+    assert random_name()
+           |> J.delete()
+           |> Alerts.Scheduler.find_job() == nil
   end
 
-  test "Test update" do
-    name = random_name()
-    fn1 = fn -> :ok end
-    fn2 = fn -> :ok end
+  test "Test updating a job" do
+    new_function = fn -> :ok2 end
 
-    J.save(name, fn1, "@reboot")
-    J.update(name, fn2, "* * * * *")
+    job =
+      random_name()
+      |> J.save(fn -> :ok end, "@reboot")
+      |> J.update(new_function, "* * * * *")
+      |> Alerts.Scheduler.find_job()
 
-    assert_raise RuntimeError, ~r/^Can't parse .* as minute.$/, fn ->
-      J.update(:atom, fn1, "wrong schedule")
-    end
-
-    # Job exists and function was invoked
-    job = Alerts.Scheduler.find_job(name)
-
-    assert job.task == fn2
+    assert job.task == new_function
     assert job.schedule == ~e[* * * * * *]
+
+    assert random_name()
+           |> J.save(fn -> :ok end, "@reboot")
+           |> J.update(fn -> :ok end, "")
+           |> Alerts.Scheduler.find_job() == nil
+
+    assert random_name()
+           |> J.save(fn -> :ok end, "@reboot")
+           |> J.update(fn -> :ok end, nil)
+           |> Alerts.Scheduler.find_job() == nil
   end
 end

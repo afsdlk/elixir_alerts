@@ -13,22 +13,28 @@ defmodule Alerts.Business.Jobs do
     }
   end
 
-  def delete(job_name), do: :ok = Scheduler.delete_job(job_name)
-
-  def update(job_name, nil), do: :ok = delete(job_name)
-
-  def update(job_name, task, schedule) do
-    :ok = delete(job_name)
-    :ok = save(job_name, task, schedule)
-  end
-
-  def save(_id, nil), do: :ok
+  def save(job_name, _task, nil), do: job_name
+  def save(job_name, _task, ""), do: job_name
 
   def save(job_name, task, schedule) do
-    Scheduler.new_job()
-    |> Quantum.Job.set_name(job_name)
-    |> Quantum.Job.set_schedule(Crontab.CronExpression.Parser.parse!(schedule))
-    |> Quantum.Job.set_task(task)
-    |> Scheduler.add_job()
+    :ok =
+      Scheduler.new_job()
+      |> Quantum.Job.set_name(job_name)
+      |> Quantum.Job.set_schedule(Crontab.CronExpression.Parser.parse!(schedule))
+      |> Quantum.Job.set_task(task)
+      |> Scheduler.add_job()
+
+    job_name
+  end
+
+  def update(job_name, task, schedule) do
+    job_name
+    |> delete()
+    |> save(task, schedule)
+  end
+
+  def delete(job_name) do
+    :ok = Scheduler.delete_job(job_name)
+    job_name
   end
 end

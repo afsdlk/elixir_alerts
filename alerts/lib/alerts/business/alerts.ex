@@ -17,7 +17,7 @@ defmodule Alerts.Business.Alerts do
     do: :ok = alert_id |> get!() |> Repo.delete!() |> delete_job()
 
   def change(), do: DB.Alert.new_changeset()
-  def change(alert), do: DB.Alert.modify_changeset(alert)
+  def change(%DB.Alert{} = alert), do: DB.Alert.modify_changeset(alert)
 
   def create(params) do
     with {:ok, inserted} <- %DB.Alert{} |> DB.Alert.new_changeset(params) |> Repo.insert() do

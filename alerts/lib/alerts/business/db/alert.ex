@@ -69,6 +69,7 @@ defmodule Alerts.Business.DB.Alert do
   end
 
   def new_changeset(), do: new_changeset(%__MODULE__{}, %{})
+  def new_changeset(params), do: new_changeset(%__MODULE__{}, params)
 
   def new_changeset(%__MODULE__{} = alert, params) do
     alert

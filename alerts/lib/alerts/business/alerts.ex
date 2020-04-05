@@ -20,9 +20,11 @@ defmodule Alerts.Business.Alerts do
   def change(%DB.Alert{} = alert), do: DB.Alert.modify_changeset(alert)
 
   def create(params) do
-    with {:ok, inserted} <- %DB.Alert{} |> DB.Alert.new_changeset(params) |> Repo.insert() do
-      save_job(inserted)
-      Files.create_folder(inserted)
+    with {:ok, inserted} <- DB.Alert.new_changeset(params) |> Repo.insert() do
+      inserted
+      |> save_job()
+      |> Files.create_folder()
+
       {:ok, inserted}
     else
       other -> other
@@ -31,8 +33,10 @@ defmodule Alerts.Business.Alerts do
 
   def update(%DB.Alert{} = alert, params) do
     with {:ok, updated} <- alert |> DB.Alert.modify_changeset(params) |> Repo.update() do
-      update_job(updated)
-      Files.create_folder(updated)
+      updated
+      |> update_job()
+      |> Files.create_folder()
+
       {:ok, updated}
     else
       other -> other
@@ -67,18 +71,32 @@ defmodule Alerts.Business.Alerts do
     end)
   end
 
-  def save_job(%DB.Alert{schedule: nil}, _), do: :ok
-  def save_job(%DB.Alert{schedule: ""}, _), do: :ok
+  def save_job(%DB.Alert{schedule: nil} = alert, _), do: alert
+  def save_job(%DB.Alert{schedule: ""} = alert, _), do: alert
 
-  def save_job(%DB.Alert{} = alert),
-    do: :ok = get_job_name(alert) |> Jobs.save(get_function(alert), alert.schedule)
+  def save_job(%DB.Alert{} = alert) do
+    alert
+    |> get_job_name()
+    |> Jobs.save(get_function(alert), alert.schedule)
 
-  def update_job(alert) do
-    :ok = delete_job(alert)
-    :ok = save_job(alert)
+    alert
   end
 
-  def delete_job(alert), do: get_job_name(alert) |> Jobs.delete()
+  def update_job(alert) do
+    alert
+    |> delete_job()
+    |> save_job()
+
+    alert
+  end
+
+  def delete_job(alert) do
+    alert
+    |> get_job_name()
+    |> Jobs.delete()
+
+    alert
+  end
 
   def run_query(query, repo) do
     # @TODO: Non existing repo??

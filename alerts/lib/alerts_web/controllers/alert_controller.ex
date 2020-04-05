@@ -23,7 +23,8 @@ defmodule AlertsWeb.AlertController do
   def new(conn, _params), do: render(conn, "new.html", alert_changeset: Alerts.change())
 
   def create(conn, %{"alert" => params}) do
-    Alerts.create(params)
+    params
+    |> Alerts.create()
     |> case do
       {:ok, alert} ->
         conn
@@ -43,7 +44,8 @@ defmodule AlertsWeb.AlertController do
   def update(conn, %{"alert" => params, "id" => alert_id}) do
     alert = Alerts.get!(alert_id)
 
-    Alerts.update(alert, params)
+    alert
+    |> Alerts.update(params)
     |> case do
       {:ok, alert} ->
         conn

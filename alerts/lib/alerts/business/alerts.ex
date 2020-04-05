@@ -8,7 +8,7 @@ defmodule Alerts.Business.Alerts do
     do: DB.Alert.contexts() |> Repo.all() |> Enum.reduce([], &(&1 ++ &2))
 
   def alerts_in_context(context, order),
-    do: DB.Alert.alerts_in_context(context, order) |> Repo.all()
+    do: context |> DB.Alert.alerts_in_context(order) |> Repo.all()
 
   def get!(alert_id),
     do: DB.Alert |> Repo.get!(alert_id)
@@ -100,7 +100,7 @@ defmodule Alerts.Business.Alerts do
 
   def run_query(query, repo) do
     # @TODO: Non existing repo??
-    selected_repo = get_repo(repo) || Alerts.Repo
+    selected_repo = get_repo(repo)
 
     # rollback returs always :error
     {_, transaction_results} =
@@ -120,6 +120,8 @@ defmodule Alerts.Business.Alerts do
 
     transaction_results
   end
+
+  def get_repo(), do: Alerts.Repo
 
   def get_repo(repo_name) do
     Application.get_env(:alerts, :ecto_repos)

@@ -77,9 +77,9 @@ defmodule Alerts.Business.DB.Alert do
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
     |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> query_is_valid(:query, repo: Alerts.get_repo(params["repo"]))
+    |> validate(:query, repo: Alerts.get_repo(params["repo"]))
     |> C.change(status: get_status(:new))
-    |> schedule_is_valid(:schedule)
+    |> validate(:schedule)
   end
 
   def modify_changeset(%__MODULE__{} = alert), do: modify_changeset(alert, %{})
@@ -90,24 +90,32 @@ defmodule Alerts.Business.DB.Alert do
     |> C.force_change(:query, params["query"])
     |> C.change(updated_at: nowNaive())
     |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> query_is_valid(:query, repo: Alerts.get_repo(params["repo"]))
+    |> validate(:query, repo: Alerts.get_repo(params["repo"]))
     |> C.change(status: get_status(:updated))
-    |> schedule_is_valid(:schedule)
+    |> validate(:schedule)
   end
 
-  def query_is_valid(changeset, field, options \\ []) do
-    C.validate_change(changeset, field, fn _, query ->
-      case query |> Alerts.run_query(Alerts.get_repo(options[:repo])) do
-        {:error, results} -> [{field, "Your query has errors: " <> (results |> Poison.encode!())}]
+  def validate(changeset, field, options \\ [])
+
+  def validate(changeset, :query, options) do
+    repo = options[:repo] |> Alerts.get_repo()
+
+    changeset
+    |> C.validate_change(:query, fn _, query ->
+      query
+      |> Alerts.run_query(repo)
+      |> case do
+        {:error, e} -> [{:query, "Your query has errors: " <> Poison.encode!(e)}]
         _ -> []
       end
     end)
   end
 
-  def schedule_is_valid(changeset, field, _options \\ []) do
-    C.validate_change(changeset, field, fn _, schedule ->
+  def validate(changeset, :schedule, _options) do
+    changeset
+    |> C.validate_change(:schedule, fn _, schedule ->
       case Crontab.CronExpression.Parser.parse(schedule) do
-        {:error, text} -> [{field, "Your scheduler format is wrong: " <> text}]
+        {:error, text} -> [{:schedule, "Your scheduler format is wrong: " <> text}]
         _ -> []
       end
     end)

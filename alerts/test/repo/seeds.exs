@@ -17,7 +17,7 @@ Logger.configure(level: :info)
 Logger.info("Adding test fixtures")
 
 a1 = %Alerts.Business.DB.Alert{
-  id: 1,
+  id: 100_000_000,
   context: "TESTS",
   description: "Testing 123",
   inserted_at: ~N[2020-03-21 16:34:35],

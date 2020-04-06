@@ -13,8 +13,7 @@ defmodule Alerts.Business.Alerts do
   def get!(alert_id),
     do: DB.Alert |> Repo.get!(alert_id)
 
-  def delete(alert_id),
-    do: :ok = alert_id |> get!() |> Repo.delete!() |> delete_job()
+  def delete(alert_id), do: alert_id |> get!() |> Repo.delete!() |> delete_job()
 
   def change(), do: DB.Alert.new_changeset()
   def change(%DB.Alert{} = alert), do: DB.Alert.modify_changeset(alert)
@@ -122,10 +121,12 @@ defmodule Alerts.Business.Alerts do
   end
 
   def get_repo(), do: Alerts.Repo
+  def get_repo(nil), do: Alerts.Repo
 
   def get_repo(repo_name) do
     Application.get_env(:alerts, :ecto_repos)
-    |> Enum.find(&(&1 == Module.concat([repo_name])))
+    |> Enum.find(&(&1 == Module.concat([repo_name]))) ||
+      get_repo()
   end
 
   def run(alert_id) do

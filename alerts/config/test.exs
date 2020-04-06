@@ -10,6 +10,8 @@ config :alerts, AlertsWeb.Endpoint,
 config :logger, level: :warn
 config :logger, :console, format: "$time - [$level] $message\n"
 
+config :alerts, :export_folder, "/tmp"
+
 # Configure your database
 config :alerts, Alerts.Repo,
   adapter: Ecto.Adapters.Postgres,

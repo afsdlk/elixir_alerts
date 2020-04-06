@@ -10,8 +10,8 @@ defmodule Alerts.Business.Alerts do
   def alerts_in_context(context, order),
     do: context |> DB.Alert.alerts_in_context(order) |> Repo.all()
 
-  def get!(alert_id),
-    do: DB.Alert |> Repo.get!(alert_id)
+  def get!(%DB.Alert{} = alert), do: get!(alert.id)
+  def get!(alert_id), do: DB.Alert |> Repo.get!(alert_id)
 
   def delete(alert_id), do: alert_id |> get!() |> Repo.delete!() |> delete_job()
 
@@ -42,8 +42,8 @@ defmodule Alerts.Business.Alerts do
     end
   end
 
-  defp get_job_name(%DB.Alert{} = alert), do: get_job_name(alert.id)
-  defp get_job_name(alert_id), do: "alert_#{alert_id}" |> String.to_atom()
+  def get_job_name(%DB.Alert{} = alert), do: get_job_name(alert.id)
+  def get_job_name(alert_id), do: "alert_#{alert_id}" |> String.to_atom()
 
   defp get_function(%DB.Alert{} = alert, :definition), do: {__MODULE__, :run, [alert.id]}
   defp get_function(%DB.Alert{} = alert), do: fn -> run(alert.id) end

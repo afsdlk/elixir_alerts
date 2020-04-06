@@ -60,7 +60,7 @@ defmodule Alerts.Business.DB.Alert do
     changeset =
       alert
       |> C.change(last_run: nowNaive())
-      |> C.force_change(:results_size, params["results_size"])
+      |> C.force_change(:results_size, params[:results_size] || params["results_size"])
       |> C.cast(params, [:results, :results_size])
 
     changeset
@@ -77,7 +77,7 @@ defmodule Alerts.Business.DB.Alert do
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
     |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> validate(:query, repo: Alerts.get_repo(params["repo"]))
+    |> validate(:query, repo: Alerts.get_repo(params[:repo] || params["repo"]))
     |> C.change(status: get_status(:new))
     |> validate(:schedule)
   end
@@ -87,10 +87,10 @@ defmodule Alerts.Business.DB.Alert do
   def modify_changeset(%__MODULE__{} = alert, params) do
     alert
     |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo, :path])
-    |> C.force_change(:query, params["query"])
+    |> C.force_change(:query, params[:query] || params["query"])
     |> C.change(updated_at: nowNaive())
     |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> validate(:query, repo: Alerts.get_repo(params["repo"]))
+    |> validate(:query, repo: Alerts.get_repo(params[:repo] || params["repo"]))
     |> C.change(status: get_status(:updated))
     |> validate(:schedule)
   end
@@ -98,12 +98,10 @@ defmodule Alerts.Business.DB.Alert do
   def validate(changeset, field, options \\ [])
 
   def validate(changeset, :query, options) do
-    repo = options[:repo] |> Alerts.get_repo()
-
     changeset
     |> C.validate_change(:query, fn _, query ->
       query
-      |> Alerts.run_query(repo)
+      |> Alerts.run_query(options[:repo] |> Alerts.get_repo())
       |> case do
         {:error, e} -> [{:query, "Your query has errors: " <> Poison.encode!(e)}]
         _ -> []

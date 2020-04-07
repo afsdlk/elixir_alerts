@@ -97,8 +97,7 @@ defmodule Alerts.Business.Alerts do
     alert
   end
 
-  def run_query(query, repo) do
-    # @TODO: Non existing repo??
+  def run_query(query, repo, :pollacas) do
     selected_repo = get_repo(repo)
 
     # rollback returs always :error
@@ -106,18 +105,62 @@ defmodule Alerts.Business.Alerts do
       selected_repo.transaction(fn ->
         case selected_repo |> Ecto.Adapters.SQL.query(query, [], timeout: 1_000) do
           # Protection against write queries inmediately rollback if the query is correct
-          {:ok, results} ->
-            selected_repo.rollback({:ok, results})
-
-          {:error, results} ->
-            selected_repo.rollback({:error, results})
-
-          other ->
-            selected_repo.rollback({:error, other})
+          {:ok, results} -> selected_repo.rollback({:ok, results})
+          {:error, results} -> selected_repo.rollback({:error, results})
+          other -> selected_repo.rollback({:error, other})
         end
       end)
 
     transaction_results
+  end
+
+  def run_query(query, repo) do
+    :odbc.start()
+
+    odbcstring =
+      'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;Trusted_Connection=False;UID=postgres;PWD=postgres;'
+
+    {:ok, db_pid} = :odbc.connect(odbcstring, auto_commit: :off)
+
+    case :odbc.param_query(db_pid, "SELECT * FROM alert;", []) do
+      {:selected, columns, rows} ->
+        :odbc.commit(db_pid, :rollback)
+        {:ok, results |> odbc_resultset_process}
+
+      {:error, results} ->
+        :odbc.commit(db_pid, :rollback)
+        {:error, results}
+
+      # weird case
+      other ->
+        :odbc.commit(db_pid, :rollback)
+        {:error, other}
+    end
+  end
+
+  def odbc_resultset_process(r) do
+    {:ok,
+     %{
+       columns: r.columns |> Enum.map(&:erlang.list_to_binary(&1)),
+       command: :select,
+       connection_id: db_pid,
+       messages: [],
+       num_rows: Enum.count(r.rows),
+       rows:
+         r.rows
+         |> Enum.map(
+           &(&1
+             |> Tuple.to_list()
+             |> Enum.map(fn
+               item
+               when is_list(item) ->
+                 :erlang.list_to_binary(item)
+
+               other ->
+                 other
+             end))
+         )
+     }}
   end
 
   def get_repo(), do: Alerts.Repo
@@ -135,7 +178,7 @@ defmodule Alerts.Business.Alerts do
     run_query(alert.query, alert.repo) |> store_results(alert)
   end
 
-  def store_results({:ok, alert_results}, alert) do
+  def store_results({:ok, alert_results}, %DB.Alert{} = alert) do
     # "pirate" write queries create weird results, we want the query to store nil results
     content_csv =
       case alert_results.rows do
@@ -164,7 +207,7 @@ defmodule Alerts.Business.Alerts do
     |> Repo.update!()
   end
 
-  def store_results(_, alert) do
+  def store_results(_, %DB.Alert{} = alert) do
     alert
     |> DB.Alert.run_changeset(%{results: "", results_size: -1})
     |> Repo.update!()

@@ -10,7 +10,7 @@ config :alerts, AlertsWeb.Endpoint,
 config :logger, level: :warn
 config :logger, :console, format: "$time - [$level] $message\n"
 
-config :alerts, :export_folder, "/tmp"
+config :alerts, :export_folder, "/tmp/tests_alerts"
 
 # Configure your database
 config :alerts, Alerts.Repo,

@@ -31,6 +31,14 @@ defmodule Alerts.Business.Alerts do
   def get_job_name(%DB.Alert{} = alert),
     do: H.get_job_name(alert)
 
+  def reboot_all_jobs() do
+    Alerts.Scheduler.delete_all_jobs()
+
+    DB.Alert
+    |> Repo.all()
+    |> Enum.each(&H.save_job/1)
+  end
+
   def create(params) do
     with {:ok, inserted} <- DB.Alert.new_changeset(params) |> Repo.insert() do
       inserted

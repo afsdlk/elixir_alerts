@@ -3,12 +3,15 @@ h1
   = raw("&rarr;")
   em = @context
 
-p 
+p
   = "Time right now:"
   = "Europe/Paris" |> Timex.now() |> Timex.format!("%Y-%m-%d %H:%M:%S", :strftime)
-  
+
 div.text-right
   = link "Create alert", to: alert_path(@conn, :new), class: "button btn btn-default btn-success"
+
+= form_for @conn, alert_path(@conn, :reboot), class: "text-right"
+  = submit "Reboot jobs", class: "btn btn-primary text-right"
 
 = render AlertsWeb.AlertView, "_tabs.html", conn: @conn, available_contexts: @available_contexts, context: @context, action: :index
 

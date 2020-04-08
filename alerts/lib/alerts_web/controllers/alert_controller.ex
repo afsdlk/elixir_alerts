@@ -2,6 +2,7 @@ defmodule AlertsWeb.AlertController do
   use AlertsWeb, :controller
 
   alias Alerts.Business.Files
+  alias Alerts.Scheduler
   alias Alerts.Business.Alerts
 
   def index(conn, params) do
@@ -16,6 +17,14 @@ defmodule AlertsWeb.AlertController do
       context: context,
       alerts: alerts
     )
+  end
+
+  def reboot(conn, params) do
+    Scheduler.reboot_all_jobs()
+
+    conn
+    |> put_flash(:info, "Jobs rebooted")
+    |> redirect(to: alert_path(conn, :index, params))
   end
 
   def view(conn, %{"id" => alert_id}), do: render(conn, "view.html", alert: Alerts.get!(alert_id))

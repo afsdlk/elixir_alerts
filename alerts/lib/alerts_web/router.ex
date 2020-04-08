@@ -21,6 +21,8 @@ defmodule AlertsWeb.Router do
 
     get("/alerts", AlertController, :index)
     get("/alerts/new", AlertController, :new)
+    post("/alerts/reboot", AlertController, :reboot)
+
     post("/alerts", AlertController, :create)
     get("/alerts/edit/:id", AlertController, :edit)
     put("/alerts/:id", AlertController, :update)

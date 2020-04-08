@@ -8,11 +8,8 @@ defmodule Alerts.Business.Helper do
   def get_job_name(alert_id),
     do: "alert_#{alert_id}" |> String.to_atom()
 
-  defp get_function(%DB.Alert{} = alert, :definition),
+  defp get_function_definition(%DB.Alert{} = alert),
     do: {Alerts.Business.Alerts, :run, [alert.id]}
-
-  defp get_function(%DB.Alert{} = alert),
-    do: fn -> Alerts.Business.Alerts.run(alert.id) end
 
   def save_job(%DB.Alert{schedule: nil} = alert, _),
     do: alert
@@ -23,7 +20,7 @@ defmodule Alerts.Business.Helper do
   def save_job(%DB.Alert{} = alert) do
     alert
     |> get_job_name()
-    |> Jobs.save(get_function(alert), alert.schedule)
+    |> Jobs.save(fn -> Alerts.Business.Alerts.run(alert.id) end, alert.schedule)
 
     alert
   end
@@ -31,7 +28,7 @@ defmodule Alerts.Business.Helper do
   def get_quatum_config(%DB.Alert{} = alert) do
     Jobs.get_quantum_config(
       get_job_name(alert),
-      get_function(alert, :definition),
+      get_function_definition(alert),
       alert.schedule
     )
   end

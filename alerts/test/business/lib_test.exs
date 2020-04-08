@@ -148,6 +148,7 @@ defmodule Business.LibTest do
       run_updated = run |> Lib.update(pars) |> Lib.run()
 
       assert run.results_size == 1
+      assert run.status !== "exception!!!!!!"
       assert run_updated.results_size == 3
     end
   end

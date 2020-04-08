@@ -58,12 +58,13 @@ defmodule Alerts.Business.DB.Alert do
   def run_changeset(%__MODULE__{} = alert, params) do
     changeset =
       alert
-      |> C.change(last_run: nowNaive())
       |> C.cast(params, [:results, :results_size, :path])
+      |> C.change(last_run: nowNaive())
+      |> C.force_change(:results_size, params["results_size"])
 
     changeset
     |> C.change(status: get_status(changeset.changes, changeset.data))
-    |> C.validate_required([:last_run, :path])
+    |> C.validate_required([:last_run, :results_size, :path])
   end
 
   def new_changeset(), do: new_changeset(%__MODULE__{}, %{})

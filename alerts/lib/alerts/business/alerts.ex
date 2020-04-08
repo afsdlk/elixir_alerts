@@ -115,9 +115,9 @@ defmodule Alerts.Business.Alerts do
     # @TODO remove results from here, store file name instead
     alert
     |> DB.Alert.run_changeset(%{
-      results: content_csv,
-      results_size: num_rows,
-      path: Files.basename(alert.context)
+      "results" => content_csv,
+      "results_size" => num_rows,
+      "path" => Files.basename(alert.context)
     })
     |> Repo.update!()
   end

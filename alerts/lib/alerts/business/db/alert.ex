@@ -23,7 +23,6 @@ defmodule Alerts.Business.DB.Alert do
     field(:inserted_at, :naive_datetime)
     field(:updated_at, :naive_datetime)
 
-    field(:results, :string)
     field(:results_size, :integer)
     field(:threshold, :integer)
 
@@ -70,10 +69,9 @@ defmodule Alerts.Business.DB.Alert do
 
     changeset =
       alert
-      |> C.cast(params, [:results, :results_size, :path])
+      |> C.cast(params, [:results_size, :path])
       |> C.change(last_run: nowNaive())
-      |> C.change(path: Files.fullname(alert.context, alert.name, alert.id))
-      |> C.force_change(:results_size, params[:results_size])
+      |> C.force_change(:path, Files.fullname(alert.context, alert.name, alert.id))
 
     changeset
     |> C.change(status: get_status(changeset.changes, changeset.data))

@@ -36,22 +36,19 @@ div.col-md-6
 
 			= if @alert.results_size || 0 > 0 do
 				tr
-					th.text-right style="vertical-align:middle;"
-					  = form_tag(alert_path(@conn, :csv, @alert.id), class: "form-inline") do
-						  button.btn.btn-default.font-weight-bold type="submit" "Offending row(s)"
-          td style="vertical-align:middle;"
-						= "#{render_total(@alert.results_size)}"
-
+					th.text-right style="vertical-align:middle;" Results
+	        td = "#{render_total(@alert.results_size)}"
 			tr
 				th.text-right style="vertical-align:middle;" Threshold
         td = @alert.threshold
 
       = if @alert.path do
 		    tr
-			    th.text-right style="vertical-align:middle;" Export to path
+			    th.text-right style="vertical-align:middle;" Location
           td
-            a href="#"
-              = @alert.path
+						= form_tag(alert_path(@conn, :csv, @alert.id), method: "post", class: "form-inline") do
+							button.btn-link type="submit"
+								= @alert.path
 
 			tr
 				th.text-right style="vertical-align:middle;" Schedule

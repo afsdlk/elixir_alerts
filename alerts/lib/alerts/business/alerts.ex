@@ -96,6 +96,7 @@ defmodule Alerts.Business.Alerts do
     alert
     |> Files.write(content_csv)
 
+    # @TODO remove results from here, store file name instead
     alert
     |> DB.Alert.run_changeset(%{results: content_csv, results_size: num_rows})
     |> Repo.update!()

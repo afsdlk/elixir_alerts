@@ -2,25 +2,32 @@ defmodule Alerts.Business.Odbc do
   require Logger
 
   defp get_odbcstring(_repo) do
-    'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;Trusted_Connection=False;UID=postgres;PWD=postgres;'
+    'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;UID=postgres;PWD=postgres;'
   end
 
-  def run_query(query, repo) when is_bitstring(query) do
-    query |> :erlang.binary_to_list() |> run_query(repo)
-  end
+  def run_query(query, repo) when is_bitstring(query),
+    do: query |> :erlang.binary_to_list() |> run_query(repo)
 
   def run_query(query, repo) do
     # @TODO: SEND TO APP STARTUP
     :odbc.start()
 
     {:ok, db_pid} = repo |> get_odbcstring() |> :odbc.connect(auto_commit: :off)
-    results = db_pid |> :odbc.sql_query(query)
+
+    results =
+      try do
+        db_pid |> :odbc.sql_query(query)
+      rescue
+        _ ->
+          "Unknown error, check your logs"
+      end
+
     :odbc.commit(db_pid, :rollback)
     :odbc.disconnect(db_pid)
 
     case results do
-      {:selected, columns, rows} ->
-        {:ok, %{rows: rows, columns: columns} |> process_resultset(db_pid)}
+      {:selected, c, r} ->
+        {:ok, %{columns: c, rows: r, pid: db_pid} |> process_resultset()}
 
       {:error, msg} ->
         {:error, msg |> convert_to_string_if_charlist()}
@@ -30,8 +37,7 @@ defmodule Alerts.Business.Odbc do
 
       # weird case, does this even happen?
       other ->
-        Logger.error(other)
-        {:error, "Unknown error, check your logs"}
+        {:error, other}
     end
   end
 
@@ -63,12 +69,12 @@ defmodule Alerts.Business.Odbc do
     list |> Enum.map(&convert_to_string_if_charlist(&1))
   end
 
-  def process_resultset(r, pid) do
+  def process_resultset(r) do
     %{
       columns: process_columns(r.columns),
       rows: process_rows(r.rows),
       command: :select,
-      connection_id: pid,
+      connection_id: r.pid,
       messages: [],
       num_rows: Enum.count(r.rows)
     }

@@ -1,9 +1,9 @@
 defmodule Alerts.Business.Alerts do
   alias Alerts.Repo
   alias Alerts.Business.DB
-  alias Alerts.Business.Jobs
   alias Alerts.Business.Files
   alias Alerts.Business.Odbc
+  alias Alerts.Business.Helper, as: H
 
   require Logger
 
@@ -13,18 +13,28 @@ defmodule Alerts.Business.Alerts do
   def alerts_in_context(context, order),
     do: context |> DB.Alert.alerts_in_context(order) |> Repo.all()
 
-  def get!(%DB.Alert{} = alert), do: get!(alert.id)
-  def get!(alert_id), do: DB.Alert |> Repo.get!(alert_id)
+  def get!(%DB.Alert{} = alert),
+    do: get!(alert.id)
 
-  def delete(alert_id), do: alert_id |> get!() |> Repo.delete!() |> delete_job()
+  def get!(alert_id),
+    do: DB.Alert |> Repo.get!(alert_id)
 
-  def change(), do: DB.Alert.new_changeset()
-  def change(%DB.Alert{} = alert), do: DB.Alert.modify_changeset(alert)
+  def delete(alert_id),
+    do: alert_id |> get!() |> Repo.delete!() |> H.delete_job()
+
+  def change(),
+    do: DB.Alert.new_changeset()
+
+  def change(%DB.Alert{} = alert),
+    do: DB.Alert.modify_changeset(alert)
+
+  def get_job_name(%DB.Alert{} = alert),
+    do: H.get_job_name(alert)
 
   def create(params) do
     with {:ok, inserted} <- DB.Alert.new_changeset(params) |> Repo.insert() do
       inserted
-      |> save_job()
+      |> H.save_job()
       |> Files.create_folder()
 
       {:ok, inserted}
@@ -36,7 +46,7 @@ defmodule Alerts.Business.Alerts do
   def update(%DB.Alert{} = alert, params) do
     with {:ok, updated} <- alert |> DB.Alert.modify_changeset(params) |> Repo.update() do
       updated
-      |> update_job()
+      |> H.update_job()
       |> Files.create_folder()
 
       {:ok, updated}
@@ -45,59 +55,19 @@ defmodule Alerts.Business.Alerts do
     end
   end
 
-  def get_job_name(%DB.Alert{} = alert), do: get_job_name(alert.id)
-  def get_job_name(alert_id), do: "alert_#{alert_id}" |> String.to_atom()
-
-  defp get_function(%DB.Alert{} = alert, :definition), do: {__MODULE__, :run, [alert.id]}
-  defp get_function(%DB.Alert{} = alert), do: fn -> run(alert.id) end
-
   def get_all_alert_jobs_config do
     DB.Alert.scheduled_alerts()
     |> Repo.all()
     |> Enum.reduce([], fn alert, acc ->
       case Crontab.CronExpression.Parser.parse(alert.schedule) do
         {:error, text} ->
-          IO.inspect("Error! #{alert.id} #{alert.schedule} #{text}")
+          Logger.error("Error! #{alert.id} #{alert.schedule} #{text}")
           acc
 
         _ ->
-          acc ++
-            [
-              Jobs.get_quantum_config(
-                get_job_name(alert),
-                get_function(alert, :definition),
-                alert.schedule
-              )
-            ]
+          acc ++ [H.get_quatum_config(alert)]
       end
     end)
-  end
-
-  def save_job(%DB.Alert{schedule: nil} = alert, _), do: alert
-  def save_job(%DB.Alert{schedule: ""} = alert, _), do: alert
-
-  def save_job(%DB.Alert{} = alert) do
-    alert
-    |> get_job_name()
-    |> Jobs.save(get_function(alert), alert.schedule)
-
-    alert
-  end
-
-  def update_job(alert) do
-    alert
-    |> delete_job()
-    |> save_job()
-
-    alert
-  end
-
-  def delete_job(alert) do
-    alert
-    |> get_job_name()
-    |> Jobs.delete()
-
-    alert
   end
 
   def run(alert_id) do
@@ -106,7 +76,8 @@ defmodule Alerts.Business.Alerts do
     alert.query |> Odbc.run_query(alert.repo) |> store_results(alert)
   end
 
-  def get_csv(%{rows: nil}), do: nil
+  def get_csv(%{rows: nil}),
+    do: nil
 
   def get_csv(%{columns: columns, rows: rows}) do
     [columns | rows]

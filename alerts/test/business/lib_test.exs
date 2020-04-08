@@ -11,20 +11,41 @@ defmodule Business.LibTest do
   # @base_folder Application.get_env(:alerts, :export_folder)
 
   @default %{
-    query: "SELECT 'a' AS a;",
-    description: "test",
-    repo: "test"
+    "query" => "SELECT 'a' AS a;",
+    "description" => "test",
+    "repo" => "test"
   }
 
-  defp fixture_struct(),
-    do: @default |> Map.merge(%{name: H.random_name(), context: H.random_name()})
+  # alerts are atom maps, vs string maps pars
+  defp deatomize(map) do
+    for {key, val} <- map, into: %{} do
+      case is_atom(key) do
+        true -> {Atom.to_string(key), val}
+        false -> {key, val}
+      end
+    end
+  end
 
-  defp fixture_struct(%A{} = a), do: fixture_struct() |> Map.merge(Map.from_struct(a))
-  defp fixture_struct(m), do: fixture_struct() |> Map.merge(m)
-  defp fixture_struct(%A{} = a, m), do: a |> Map.from_struct() |> Map.merge(m)
-  defp fixture_struct_new_context(%A{} = a), do: fixture_struct(a, %{context: H.random_name()})
-  defp fixture_struct_with_schedule(s), do: %{schedule: s} |> fixture_struct()
-  defp fixture_struct_with_schedule(alert, s), do: fixture_struct(alert, %{schedule: s})
+  defp fixture_struct(),
+    do: @default |> Map.merge(%{"name" => H.random_name(), "context" => H.random_name()})
+
+  defp fixture_struct(%A{} = alert),
+    do: fixture_struct() |> Map.merge(alert |> Map.from_struct() |> deatomize())
+
+  defp fixture_struct(m),
+    do: fixture_struct() |> Map.merge(m)
+
+  defp fixture_struct(%A{} = alert, map),
+    do: alert |> Map.from_struct() |> deatomize() |> Map.merge(map)
+
+  defp fixture_struct_new_context(%A{} = alert),
+    do: alert |> fixture_struct(%{"context" => H.random_name()})
+
+  defp fixture_struct_with_schedule(s),
+    do: %{"schedule" => s} |> fixture_struct()
+
+  defp fixture_struct_with_schedule(%A{} = alert, s),
+    do: alert |> fixture_struct(%{"schedule" => s})
 
   test "create alert in db" do
     # Exists
@@ -45,7 +66,7 @@ defmodule Business.LibTest do
     end
   end
 
-  test "create alert in db and creating corresponding folder" do
+  test "create alert in db and corresponding folder" do
     # Creates the folder (context)
     with {:ok, inserted} = fixture_struct() |> Lib.create() do
       assert inserted |> Files.basename() |> File.exists?() == true
@@ -58,15 +79,17 @@ defmodule Business.LibTest do
     # Deletes scheduling job on update
     with {:ok, inserted} = fixture_struct_with_schedule("@reboot") |> Lib.create() do
       updated_fields = %{
-        description: H.random_name(),
-        name: H.random_name()
+        "description" => H.random_name(),
+        "name" => H.random_name(),
+        "query" => "SELECT '#{H.random_name()}' as \"#{H.random_name()}\""
       }
 
       pars = inserted |> fixture_struct(updated_fields)
       {:ok, updated} = inserted |> Lib.update(pars)
 
-      assert updated.description == updated_fields.description
-      assert updated.name == updated_fields.name
+      assert updated.description == updated_fields["description"]
+      assert updated.name == updated_fields["name"]
+      assert updated.query == updated_fields["query"]
     end
   end
 
@@ -96,7 +119,7 @@ defmodule Business.LibTest do
     end
   end
 
-  test "update alert in db and creating folder path" do
+  test "update alert creates a new folder if the context is different" do
     # Creates folder on update
     with {:ok, inserted} = fixture_struct() |> Lib.create() do
       pars = inserted |> fixture_struct_new_context()
@@ -105,7 +128,27 @@ defmodule Business.LibTest do
       assert inserted |> Files.basename() |> File.exists?() == true
       assert updated |> Files.basename() |> File.exists?() == true
       assert Files.basename(inserted) != Files.basename(updated)
-      assert Files.basename(updated) == updated.path
+      assert updated.path == Files.basename(updated)
+    end
+  end
+
+  test "test run updates results_size" do
+    with run <- fixture_struct() |> Lib.create() |> Lib.run() do
+      updated_fields = %{
+        "query" => """
+          (SELECT '#{H.random_name()}' as \"#{H.random_name()}\")
+          UNION
+          (SELECT '#{H.random_name()}' as \"#{H.random_name()}\")
+          UNION
+          (SELECT '#{H.random_name()}' as \"#{H.random_name()}\")
+        """
+      }
+
+      pars = run |> fixture_struct(updated_fields)
+      run_updated = run |> Lib.update(pars) |> Lib.run()
+
+      assert run.results_size == 1
+      assert run_updated.results_size == 3
     end
   end
 end

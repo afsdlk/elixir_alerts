@@ -59,7 +59,6 @@ defmodule Alerts.Business.DB.Alert do
     changeset =
       alert
       |> C.change(last_run: nowNaive())
-      |> C.force_change(:results_size, params[:results_size])
       |> C.cast(params, [:results, :results_size, :path])
 
     changeset
@@ -86,7 +85,6 @@ defmodule Alerts.Business.DB.Alert do
   def modify_changeset(%__MODULE__{} = alert, params) do
     alert
     |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo, :path])
-    |> C.force_change(:query, params[:query] || params["query"])
     |> C.change(updated_at: nowNaive())
     |> C.validate_required([:name, :description, :context, :query, :repo, :path])
     |> validate(:query, repo: params["repo"])

@@ -13,7 +13,8 @@ defmodule AlertsWeb.AlertController do
     render(
       conn,
       "index.html",
-      available_contexts: (available_contexts ++ [context]) |> Enum.uniq(),
+      available_contexts:
+        ([context] ++ available_contexts) |> Enum.uniq() |> Enum.sort(&(&1 > &2)),
       context: context,
       alerts: alerts
     )

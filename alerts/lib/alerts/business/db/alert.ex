@@ -69,8 +69,9 @@ defmodule Alerts.Business.DB.Alert do
 
     changeset =
       alert
-      |> C.cast(params, [:results_size, :path])
-      |> C.change(last_run: nowNaive())
+      |> C.change()
+      |> C.force_change(:results_size, params[:results_size])
+      |> C.force_change(:last_run, nowNaive())
       |> C.force_change(:path, Files.fullname(alert.context, alert.name, alert.id))
 
     changeset
@@ -141,5 +142,10 @@ defmodule Alerts.Business.DB.Alert do
   def get_status(%{results_size: size}, %__MODULE__{threshold: nil}) when size >= 0, do: "bad"
   def get_status(%{results_size: size}, %__MODULE__{threshold: thr}) when size >= thr, do: "bad"
   def get_status(%{results_size: _size}, %__MODULE__{threshold: _thr}), do: "under threshold"
-  def get_status(_c, _a), do: "exception!!!!!!"
+
+  def get_status(c, a) do
+    IO.inspect(c)
+    IO.inspect(a)
+    "exception!!!!!!"
+  end
 end

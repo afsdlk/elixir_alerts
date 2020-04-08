@@ -3,6 +3,7 @@ defmodule Business.LibTest do
   alias Alerts.Scheduler
   alias Alerts.Business.DB.Alert, as: A
   alias Alerts.Business.Alerts, as: Lib
+  alias Alerts.Business.Files, as: Files
   alias CustomHelper, as: H
 
   import Crontab.CronExpression

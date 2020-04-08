@@ -8,21 +8,21 @@ defmodule Business.LibTest do
 
   import Crontab.CronExpression
 
-  @base_folder Application.get_env(:alerts, :export_folder)
+  # @base_folder Application.get_env(:alerts, :export_folder)
 
-  @default_struct %{
-    context: "test",
+  @default %{
     query: "SELECT 'a' AS a;",
     description: "test",
     repo: "test"
   }
 
-  defp fixture_struct(), do: @default_struct |> Map.merge(%{name: H.random_name()})
+  defp fixture_struct(),
+    do: @default |> Map.merge(%{name: H.random_name(), context: H.random_name()})
+
   defp fixture_struct(%A{} = a), do: fixture_struct() |> Map.merge(Map.from_struct(a))
   defp fixture_struct(m), do: fixture_struct() |> Map.merge(m)
   defp fixture_struct(%A{} = a, m), do: a |> Map.from_struct() |> Map.merge(m)
-  defp fixture_struct_with_path(), do: %{path: H.random_name()} |> fixture_struct()
-  defp fixture_struct_with_path(%A{} = a), do: fixture_struct(a, %{path: H.random_name()})
+  defp fixture_struct_new_context(%A{} = a), do: fixture_struct(a, %{context: H.random_name()})
   defp fixture_struct_with_schedule(s), do: %{schedule: s} |> fixture_struct()
   defp fixture_struct_with_schedule(alert, s), do: fixture_struct(alert, %{schedule: s})
 
@@ -46,16 +46,10 @@ defmodule Business.LibTest do
   end
 
   test "create alert in db and creating corresponding folder" do
-    # Creates folder
-    with {:ok, inserted} = fixture_struct_with_path() |> Lib.create() do
+    # Creates the folder (context)
+    with {:ok, inserted} = fixture_struct() |> Lib.create() do
       assert inserted |> Files.basename() |> File.exists?() == true
-    end
-
-    # Does not create folder
-    File.rm_rf(@base_folder)
-
-    with {:ok, _} = fixture_struct() |> Lib.create() do
-      assert @base_folder |> File.exists?() == false
+      assert inserted |> Files.basename() == inserted.path
     end
   end
 
@@ -104,12 +98,14 @@ defmodule Business.LibTest do
 
   test "update alert in db and creating folder path" do
     # Creates folder on update
-    with {:ok, inserted} = fixture_struct_with_path() |> Lib.create() do
-      pars = inserted |> fixture_struct_with_path()
+    with {:ok, inserted} = fixture_struct() |> Lib.create() do
+      pars = inserted |> fixture_struct_new_context()
       {:ok, updated} = inserted |> Lib.update(pars)
       # both folders exist, meaning it does not delete the previous folder
       assert inserted |> Files.basename() |> File.exists?() == true
       assert updated |> Files.basename() |> File.exists?() == true
+      assert Files.basename(inserted) != Files.basename(updated)
+      assert Files.basename(updated) == updated.path
     end
   end
 end

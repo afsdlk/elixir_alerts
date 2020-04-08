@@ -40,7 +40,10 @@ defmodule Alerts.Business.Alerts do
   end
 
   def create(params) do
-    with {:ok, inserted} <- DB.Alert.new_changeset(params) |> Repo.insert() do
+    p = Map.merge(params, %{"path" => params["context"]})
+
+    with {:ok, inserted} <-
+           DB.Alert.new_changeset(p) |> Repo.insert() do
       inserted
       |> H.save_job()
       |> Files.create_folder()
@@ -52,7 +55,12 @@ defmodule Alerts.Business.Alerts do
   end
 
   def update(%DB.Alert{} = alert, params) do
-    with {:ok, updated} <- alert |> DB.Alert.modify_changeset(params) |> Repo.update() do
+    p = Map.merge(params, %{"path" => Files.basename(alert)})
+
+    with {:ok, updated} <-
+           alert
+           |> DB.Alert.modify_changeset(p)
+           |> Repo.update() do
       updated
       |> H.update_job()
       |> Files.create_folder()
@@ -106,13 +114,21 @@ defmodule Alerts.Business.Alerts do
 
     # @TODO remove results from here, store file name instead
     alert
-    |> DB.Alert.run_changeset(%{results: content_csv, results_size: num_rows})
+    |> DB.Alert.run_changeset(%{
+      results: content_csv,
+      results_size: num_rows,
+      path: Files.basename(alert.context)
+    })
     |> Repo.update!()
   end
 
   def store_results(_, %DB.Alert{} = alert) do
     alert
-    |> DB.Alert.run_changeset(%{results: "", results_size: -1})
+    |> DB.Alert.run_changeset(%{
+      results: "",
+      results_size: -1,
+      path: Files.basename(alert.context)
+    })
     |> Repo.update!()
   end
 end

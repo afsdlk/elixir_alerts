@@ -3,6 +3,9 @@ defmodule Alerts.Business.Alerts do
   alias Alerts.Business.DB
   alias Alerts.Business.Jobs
   alias Alerts.Business.Files
+  alias Alerts.Business.Odbc
+
+  require Logger
 
   def contexts(),
     do: DB.Alert.contexts() |> Repo.all() |> Enum.reduce([], &(&1 ++ &2))
@@ -97,110 +100,30 @@ defmodule Alerts.Business.Alerts do
     alert
   end
 
-  def run_query(query, repo, :pollacas) do
-    selected_repo = get_repo(repo)
-
-    # rollback returs always :error
-    {_, transaction_results} =
-      selected_repo.transaction(fn ->
-        case selected_repo |> Ecto.Adapters.SQL.query(query, [], timeout: 1_000) do
-          # Protection against write queries inmediately rollback if the query is correct
-          {:ok, results} -> selected_repo.rollback({:ok, results})
-          {:error, results} -> selected_repo.rollback({:error, results})
-          other -> selected_repo.rollback({:error, other})
-        end
-      end)
-
-    transaction_results
-  end
-
-  def run_query(query, repo) do
-    :odbc.start()
-
-    odbcstring =
-      'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;Trusted_Connection=False;UID=postgres;PWD=postgres;'
-
-    {:ok, db_pid} = :odbc.connect(odbcstring, auto_commit: :off)
-
-    case :odbc.param_query(db_pid, "SELECT * FROM alert;", []) do
-      {:selected, columns, rows} ->
-        :odbc.commit(db_pid, :rollback)
-        {:ok, results |> odbc_resultset_process}
-
-      {:error, results} ->
-        :odbc.commit(db_pid, :rollback)
-        {:error, results}
-
-      # weird case
-      other ->
-        :odbc.commit(db_pid, :rollback)
-        {:error, other}
-    end
-  end
-
-  def odbc_resultset_process(r) do
-    {:ok,
-     %{
-       columns: r.columns |> Enum.map(&:erlang.list_to_binary(&1)),
-       command: :select,
-       connection_id: db_pid,
-       messages: [],
-       num_rows: Enum.count(r.rows),
-       rows:
-         r.rows
-         |> Enum.map(
-           &(&1
-             |> Tuple.to_list()
-             |> Enum.map(fn
-               item
-               when is_list(item) ->
-                 :erlang.list_to_binary(item)
-
-               other ->
-                 other
-             end))
-         )
-     }}
-  end
-
-  def get_repo(), do: Alerts.Repo
-  def get_repo(nil), do: Alerts.Repo
-
-  def get_repo(repo_name) do
-    Application.get_env(:alerts, :ecto_repos)
-    |> Enum.find(&(&1 == Module.concat([repo_name]))) ||
-      get_repo()
-  end
-
   def run(alert_id) do
     alert = get!(alert_id)
     Files.create_folder(alert)
-    run_query(alert.query, alert.repo) |> store_results(alert)
+    alert.query |> Odbc.run_query(alert.repo) |> store_results(alert)
   end
 
+  def get_csv(%{rows: nil}), do: nil
+
+  def get_csv(%{columns: columns, rows: rows}) do
+    [columns | rows]
+    |> CSV.encode()
+    |> Enum.to_list()
+    |> to_string()
+  end
+
+  def get_num_rows(%{rows: nil}), do: -1
+  def get_num_rows(%{rows: _rows, num_rows: num_rows}), do: num_rows
+
   def store_results({:ok, alert_results}, %DB.Alert{} = alert) do
-    # "pirate" write queries create weird results, we want the query to store nil results
-    content_csv =
-      case alert_results.rows do
-        nil ->
-          nil
+    content_csv = get_csv(alert_results)
+    num_rows = get_num_rows(alert_results)
 
-        _ ->
-          # This thing crashes with naive_datetime like inserted_at, updated_at,
-          # the solution is to use updated_at::TEXT in your query
-          [alert_results.columns | alert_results.rows]
-          |> CSV.encode()
-          |> Enum.to_list()
-          |> to_string()
-      end
-
-    num_rows =
-      case alert_results.rows do
-        nil -> -1
-        _ -> alert_results.num_rows
-      end
-
-    Files.write(alert, content_csv)
+    alert
+    |> Files.write(content_csv)
 
     alert
     |> DB.Alert.run_changeset(%{results: content_csv, results_size: num_rows})

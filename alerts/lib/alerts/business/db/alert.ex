@@ -6,10 +6,9 @@ defmodule Alerts.Business.DB.Alert do
 
   alias Ecto.Query, as: Q
   alias Ecto.Changeset, as: C
+  alias Alerts.Business.Odbc
 
   require Crontab.CronExpression.Parser
-
-  alias Alerts.Business.Alerts
 
   @primary_key {:id, :id, autogenerate: true}
   schema "alert" do
@@ -77,7 +76,7 @@ defmodule Alerts.Business.DB.Alert do
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
     |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> validate(:query, repo: Alerts.get_repo(params[:repo] || params["repo"]))
+    |> validate(:query, repo: params["repo"])
     |> C.change(status: get_status(:new))
     |> validate(:schedule)
   end
@@ -90,7 +89,7 @@ defmodule Alerts.Business.DB.Alert do
     |> C.force_change(:query, params[:query] || params["query"])
     |> C.change(updated_at: nowNaive())
     |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> validate(:query, repo: Alerts.get_repo(params[:repo] || params["repo"]))
+    |> validate(:query, repo: params["repo"])
     |> C.change(status: get_status(:updated))
     |> validate(:schedule)
   end
@@ -101,7 +100,7 @@ defmodule Alerts.Business.DB.Alert do
     changeset
     |> C.validate_change(:query, fn _, query ->
       query
-      |> Alerts.run_query(options[:repo] |> Alerts.get_repo())
+      |> Odbc.run_query(options[:repo])
       |> case do
         {:error, e} -> [{:query, "Your query has errors: " <> Poison.encode!(e)}]
         _ -> []

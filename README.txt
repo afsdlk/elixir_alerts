@@ -60,13 +60,13 @@ end) |> Alerts.Repo.transaction
     rows: [[38, "akak"], [1, "test1"], [5, "test2dd"]]
   }}
 
-query = 'select id, name from Alert;'
+query = 'select \'kk\' as KK;'
 
 
 :odbc.start()
 odbcstring = 'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;Trusted_Connection=False;UID=postgres;PWD=postgres;'
 {:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
-{:selected, columns, rows} = :odbc.param_query(db_pid,query,[])
+{:selected, columns, rows} = :odbc.sql_query(db_pid,query)
 :odbc.commit(db_pid, :rollback)
 :odbc.disconnect(db_pid)
 :odbc.stop()
@@ -78,5 +78,31 @@ odbcstring = 'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;T
   connection_id: db_pid,
   messages: [],
   num_rows: Enum.count(rows),
-  rows: rows |> Enum.map(&(&1 |> Tuple.to_list() |> Enum.map(fn item when is_list(item) do :erlang.list_to_binary(item) end)))
+  rows: rows |> Enum.map(&(&1 |> Tuple.to_list() |> Enum.map(fn item -> item |> :erlang.list_to_binary end))
+  rows |> Enum.map(&(&1 |> Tuple.to_list() |> Enum.map(fn item do :erlang.list_to_binary(item) end)))
 }}
+
+
+
+{:ok,
+ %{
+   columns: columns |> Enum.map(&:erlang.list_to_binary(&1)),
+   command: :select,
+   connection_id: 1234,
+   messages: [],
+   num_rows: Enum.count(rows),
+   rows:
+     rows
+     |> Enum.map(
+       &(&1
+         |> Tuple.to_list()
+         |> Enum.map(fn
+           item
+           when is_list(item) ->
+             :erlang.list_to_binary(item)
+
+           other ->
+             other
+         end))
+     )
+ }}

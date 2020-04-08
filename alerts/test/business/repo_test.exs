@@ -37,11 +37,11 @@ defmodule Business.RepoTest do
     assert validate_query_postgres("SELECT 'A' AS A;").errors == []
   end
 
-  test "write queries rollback" do
+  test "write queries fail with error and do not affect db (rollback)" do
     delete_query = "DELETE FROM alert;"
 
     with before_count <- A |> Repo.all() |> Enum.count() do
-      assert validate_query_postgres(delete_query).errors == []
+      assert validate_query_postgres(delete_query).errors !== []
       assert A |> Repo.all() |> Enum.count() == before_count
     end
 
@@ -53,7 +53,7 @@ defmodule Business.RepoTest do
     """
 
     with before_count <- A |> Repo.all() |> Enum.count() do
-      assert validate_query_postgres(insert_query).errors == []
+      assert validate_query_postgres(insert_query).errors !== []
       assert A |> Repo.all() |> Enum.count() == before_count
     end
   end

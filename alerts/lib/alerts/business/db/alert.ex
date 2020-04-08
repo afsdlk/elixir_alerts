@@ -7,6 +7,7 @@ defmodule Alerts.Business.DB.Alert do
   alias Ecto.Query, as: Q
   alias Ecto.Changeset, as: C
   alias Alerts.Business.Odbc
+  alias Alerts.Business.Files
 
   require Crontab.CronExpression.Parser
 
@@ -37,6 +38,15 @@ defmodule Alerts.Business.DB.Alert do
 
   defp nowNaive(), do: Timex.now() |> DateTime.truncate(:second) |> Timex.to_naive_datetime()
 
+  defp atomize(map) do
+    for {key, val} <- map, into: %{} do
+      case is_atom(key) do
+        false -> {String.to_atom(key), val}
+        true -> {key, val}
+      end
+    end
+  end
+
   def contexts() do
     __MODULE__
     |> Q.select([alert], [alert.context])
@@ -55,12 +65,15 @@ defmodule Alerts.Business.DB.Alert do
     |> Q.order_by(asc: ^order)
   end
 
-  def run_changeset(%__MODULE__{} = alert, params) do
+  def run_changeset(%__MODULE__{} = alert, params_x) do
+    params = atomize(params_x)
+
     changeset =
       alert
       |> C.cast(params, [:results, :results_size, :path])
       |> C.change(last_run: nowNaive())
-      |> C.force_change(:results_size, params["results_size"])
+      |> C.change(path: Files.fullname(alert.context, alert.name, alert.id))
+      |> C.force_change(:results_size, params[:results_size])
 
     changeset
     |> C.change(status: get_status(changeset.changes, changeset.data))
@@ -70,25 +83,31 @@ defmodule Alerts.Business.DB.Alert do
   def new_changeset(), do: new_changeset(%__MODULE__{}, %{})
   def new_changeset(params), do: new_changeset(%__MODULE__{}, params)
 
-  def new_changeset(%__MODULE__{} = alert, params) do
+  def new_changeset(%__MODULE__{} = alert, params_x) do
+    params = atomize(params_x)
+
     alert
-    |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo, :path])
+    |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo])
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
-    |> C.validate_required([:name, :description, :context, :query, :repo, :path])
-    |> validate(:query, repo: params["repo"])
+    |> C.validate_required([:name, :description, :context, :query, :repo])
+    |> validate(:query, repo: params[:repo])
     |> C.change(status: get_status(:new))
     |> validate(:schedule)
   end
 
-  def modify_changeset(%__MODULE__{} = alert), do: modify_changeset(alert, %{})
+  def modify_changeset(%__MODULE__{} = alert),
+    do: modify_changeset(alert, alert |> Map.from_struct())
 
-  def modify_changeset(%__MODULE__{} = alert, params) do
+  def modify_changeset(%__MODULE__{} = alert, params_x) do
+    params = atomize(params_x)
+
     alert
-    |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo, :path])
+    |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo])
     |> C.change(updated_at: nowNaive())
+    |> C.change(path: Files.fullname(params[:context], params[:name], alert.id))
     |> C.validate_required([:name, :description, :context, :query, :repo, :path])
-    |> validate(:query, repo: params["repo"])
+    |> validate(:query, repo: params[:repo])
     |> C.change(status: get_status(:updated))
     |> validate(:schedule)
   end

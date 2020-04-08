@@ -107,6 +107,6 @@ defmodule AlertsWeb.AlertController do
     conn
     |> put_resp_content_type("text/csv")
     |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}\"")
-    |> send_resp(200, alert.results)
+    |> send_resp(200, File.read!(alert.path))
   end
 end

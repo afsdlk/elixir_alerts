@@ -51,7 +51,7 @@ div.col-md-6
 			    th.text-right style="vertical-align:middle;" Export to path
           td
             a href="#"
-              = Alerts.Business.Files.basename(@alert)
+              = @alert.path
 
 			tr
 				th.text-right style="vertical-align:middle;" Schedule

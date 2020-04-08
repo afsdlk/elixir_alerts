@@ -41,7 +41,7 @@ defmodule Alerts.Business.Alerts do
 
   def create(params) do
     with {:ok, inserted} <-
-           Map.merge(params, %{"path" => Files.basename(params["context"])})
+           params
            |> DB.Alert.new_changeset()
            |> Repo.insert() do
       inserted
@@ -55,9 +55,7 @@ defmodule Alerts.Business.Alerts do
   end
 
   def update(%DB.Alert{} = alert, params) do
-    p = params |> Map.merge(%{"path" => Files.basename(params["context"])})
-
-    with {:ok, updated} <- alert |> DB.Alert.modify_changeset(p) |> Repo.update() do
+    with {:ok, updated} <- alert |> DB.Alert.modify_changeset(params) |> Repo.update() do
       updated
       |> H.update_job()
       |> Files.create_folder()
@@ -117,7 +115,7 @@ defmodule Alerts.Business.Alerts do
     |> DB.Alert.run_changeset(%{
       "results" => content_csv,
       "results_size" => num_rows,
-      "path" => Files.basename(alert.context)
+      "path" => Files.fullname(alert)
     })
     |> Repo.update!()
   end
@@ -127,7 +125,7 @@ defmodule Alerts.Business.Alerts do
     |> DB.Alert.run_changeset(%{
       "results" => "",
       "results_size" => -1,
-      "path" => Files.basename(alert.context)
+      "path" => Files.fullname(alert)
     })
     |> Repo.update!()
   end

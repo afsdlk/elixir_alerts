@@ -2,7 +2,6 @@ defmodule Business.LibTest do
   use ExUnit.Case
   alias Alerts.Scheduler
   alias Alerts.Business.DB.Alert, as: A
-  alias Alerts.Business.Files, as: Files
   alias Alerts.Business.Alerts, as: Lib
   alias CustomHelper, as: H
 
@@ -69,8 +68,7 @@ defmodule Business.LibTest do
   test "create alert in db and corresponding folder" do
     # Creates the folder (context)
     with {:ok, inserted} = fixture_struct() |> Lib.create() do
-      assert inserted |> Files.basename() |> File.exists?() == true
-      assert inserted |> Files.basename() == inserted.path
+      assert inserted.path |> Path.dirname() |> File.exists?() == true
     end
   end
 
@@ -124,15 +122,15 @@ defmodule Business.LibTest do
     with {:ok, inserted} = fixture_struct() |> Lib.create() do
       pars = inserted |> fixture_struct_new_context()
       {:ok, updated} = inserted |> Lib.update(pars)
+
       # both folders exist, meaning it does not delete the previous folder
-      assert inserted |> Files.basename() |> File.exists?() == true
-      assert updated |> Files.basename() |> File.exists?() == true
-      assert Files.basename(inserted) != Files.basename(updated)
-      assert updated.path == Files.basename(updated)
+      assert inserted.path |> Path.dirname() |> File.exists?() == true
+      assert updated.path |> Path.dirname() |> File.exists?() == true
+      assert Path.dirname(inserted.path) != Path.dirname(updated.path)
     end
   end
 
-  test "test run updates results_size" do
+  test "test run updates results_size and saves the file" do
     with run <- fixture_struct() |> Lib.create() |> Lib.run() do
       updated_fields = %{
         "query" => """
@@ -148,8 +146,10 @@ defmodule Business.LibTest do
       run_updated = run |> Lib.update(pars) |> Lib.run()
 
       assert run.results_size == 1
+      assert File.exists?(run.path) == true
       assert run.status !== "exception!!!!!!"
       assert run_updated.results_size == 3
+      assert File.exists?(run_updated.path) == true
     end
   end
 end

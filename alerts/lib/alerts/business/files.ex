@@ -6,33 +6,28 @@ defmodule Alerts.Business.Files do
   @extension ".csv"
   @date_format "{YYYY}{0M}{0D}_{h24}{m}{s}"
 
-  def filename(%DB.Alert{} = a),
-    do: a |> filename(Timex.now())
-
   def filename(%DB.Alert{} = a, :last_run),
-    do: a |> filename(a.last_run)
+    do: filename(a.id, a.name, Timex.format!(a.last_run, @date_format))
 
-  def filename(%DB.Alert{id: id, name: name}, date) do
-    ([
-       Slugger.slugify_downcase(name),
-       id,
-       Mix.env(),
-       Timex.format!(date, @date_format)
-     ]
-     |> Enum.join("-")) <> @extension
+  def filename(id, name) do
+    ([id, Slugger.slugify_downcase(name), Mix.env()] |> Enum.join("-")) <> @extension
   end
 
-  defp fullname(%DB.Alert{} = alert),
-    do: "#{basename(alert)}/#{filename(alert)}"
+  def filename(id, name, extra) do
+    ([id, Slugger.slugify_downcase(name), Mix.env(), extra] |> Enum.join("-")) <> @extension
+  end
 
-  def basename(path) when is_binary(path),
+  def fullname(%DB.Alert{} = alert),
+    do: fullname(alert.context, alert.name, alert.id)
+
+  def fullname(context, name, id),
+    do: "#{dirname(context)}/#{filename(id, name)}"
+
+  defp dirname(path),
     do: "#{@base_folder}/#{Slugger.slugify_downcase(path)}"
 
-  def basename(%DB.Alert{} = alert),
-    do: basename(alert.context)
-
   def create_folder(%DB.Alert{} = a),
-    do: a |> basename() |> File.mkdir_p!()
+    do: a.context |> dirname() |> File.mkdir_p!()
 
   def write(%DB.Alert{} = a, content),
     do: fullname(a) |> File.open!(@flags) |> IO.write(content)

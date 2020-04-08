@@ -26,7 +26,6 @@ a1 = %Alerts.Business.DB.Alert{
   path: "esg",
   query: "SELECT 1 as my_value;",
   repo: "Elixir.Alerts.Repo",
-  results: "my_value\r\n1\r\n",
   results_size: 1,
   schedule: nil,
   status: "under threshold",

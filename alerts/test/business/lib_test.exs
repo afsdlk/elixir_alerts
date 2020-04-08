@@ -68,7 +68,7 @@ defmodule Business.LibTest do
   test "create alert in db and corresponding folder" do
     # Creates the folder (context)
     with {:ok, inserted} = fixture_struct() |> Lib.create() do
-      assert inserted.path |> Path.dirname() |> File.exists?() == true
+      assert inserted.context |> Files.dirname() |> File.exists?() == true
     end
   end
 
@@ -124,9 +124,9 @@ defmodule Business.LibTest do
       {:ok, updated} = inserted |> Lib.update(pars)
 
       # both folders exist, meaning it does not delete the previous folder
-      assert inserted.path |> Path.dirname() |> File.exists?() == true
-      assert updated.path |> Path.dirname() |> File.exists?() == true
-      assert Path.dirname(inserted.path) != Path.dirname(updated.path)
+      assert inserted.context |> Files.dirname() |> File.exists?() == true
+      assert updated.context |> Files.dirname() |> File.exists?() == true
+      assert Files.dirname(inserted.context) != Files.dirname(updated.context)
     end
   end
 

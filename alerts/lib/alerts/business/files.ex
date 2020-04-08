@@ -23,7 +23,7 @@ defmodule Alerts.Business.Files do
   def fullname(context, name, id),
     do: "#{dirname(context)}/#{filename(id, name)}"
 
-  defp dirname(path),
+  def dirname(path),
     do: "#{@base_folder}/#{Slugger.slugify_downcase(path)}"
 
   def create_folder(%DB.Alert{} = a),

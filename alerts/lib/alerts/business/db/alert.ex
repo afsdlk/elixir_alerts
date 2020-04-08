@@ -103,6 +103,7 @@ defmodule Alerts.Business.DB.Alert do
 
     alert
     |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo])
+    |> C.force_change(:query, params[:query] || params["query"])
     |> C.change(updated_at: nowNaive())
     |> C.change(path: Files.fullname(params[:context], params[:name], alert.id))
     |> C.validate_required([:name, :description, :context, :query, :repo, :path])

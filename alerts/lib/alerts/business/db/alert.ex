@@ -69,14 +69,13 @@ defmodule Alerts.Business.DB.Alert do
 
     changeset =
       alert
-      |> C.change()
-      |> C.force_change(:results_size, params[:results_size])
-      |> C.force_change(:last_run, nowNaive())
-      |> C.force_change(:path, Files.fullname(alert.context, alert.name, alert.id))
+      |> C.cast(params, [:results_size])
+      |> C.change(last_run: nowNaive())
+      |> C.change(path: Files.fullname(alert.context, alert.name, alert.id))
 
     changeset
-    |> C.change(status: get_status(changeset.changes, changeset.data))
-    |> C.validate_required([:last_run, :results_size, :path])
+    |> C.change(status: get_status(changeset.data |> Map.merge(changeset.changes)))
+    |> C.validate_required([:last_run, :results_size])
   end
 
   def new_changeset(), do: new_changeset(%__MODULE__{}, %{})
@@ -86,12 +85,13 @@ defmodule Alerts.Business.DB.Alert do
     params = atomize(params_x)
 
     alert
-    |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo])
+    |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :repo])
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
+    |> C.change(status: get_status(:new))
+    |> C.force_change(:query, params[:query])
     |> C.validate_required([:name, :description, :context, :query, :repo])
     |> validate(:query, repo: params[:repo])
-    |> C.change(status: get_status(:new))
     |> validate(:schedule)
   end
 
@@ -102,13 +102,13 @@ defmodule Alerts.Business.DB.Alert do
     params = atomize(params_x)
 
     alert
-    |> C.cast(params, [:name, :description, :context, :query, :schedule, :threshold, :repo])
-    |> C.force_change(:query, params[:query] || params["query"])
+    |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :repo])
+    |> C.change(path: nil)
     |> C.change(updated_at: nowNaive())
-    |> C.change(path: Files.fullname(params[:context], params[:name], alert.id))
-    |> C.validate_required([:name, :description, :context, :query, :repo, :path])
-    |> validate(:query, repo: params[:repo])
     |> C.change(status: get_status(:updated))
+    |> C.force_change(:query, params[:query])
+    |> C.validate_required([:name, :description, :context, :query, :repo])
+    |> validate(:query, repo: params[:repo])
     |> validate(:schedule)
   end
 
@@ -138,15 +138,9 @@ defmodule Alerts.Business.DB.Alert do
 
   def get_status(:new), do: "never run"
   def get_status(:updated), do: "never refreshed"
-  def get_status(%{results_size: -1}, _), do: "broken"
-  def get_status(%{results_size: 0}, _), do: "good"
-  def get_status(%{results_size: size}, %__MODULE__{threshold: nil}) when size >= 0, do: "bad"
-  def get_status(%{results_size: size}, %__MODULE__{threshold: thr}) when size >= thr, do: "bad"
-  def get_status(%{results_size: _size}, %__MODULE__{threshold: _thr}), do: "under threshold"
-
-  def get_status(c, a) do
-    IO.inspect(c)
-    IO.inspect(a)
-    "exception!!!!!!"
-  end
+  def get_status(%{results_size: -1}), do: "broken"
+  def get_status(%{results_size: 0}), do: "good"
+  def get_status(%{results_size: s, threshold: t}) when s >= t, do: "bad"
+  def get_status(%{results_size: s, threshold: t}) when s < t, do: "under threshold"
+  def get_status(%{results_size: s}) when s > 0, do: "bad"
 end

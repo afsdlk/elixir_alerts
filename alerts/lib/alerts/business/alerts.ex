@@ -90,31 +90,18 @@ defmodule Alerts.Business.Alerts do
     alert.query |> Odbc.run_query(alert.repo) |> store_results(alert)
   end
 
-  def get_csv(%{rows: nil}),
-    do: nil
-
-  def get_csv(%{columns: columns, rows: rows}) do
-    [columns | rows]
-    |> CSV.encode()
-    |> Enum.to_list()
-    |> to_string()
-  end
+  def get_csv(%{rows: nil}), do: nil
+  def get_csv(%{columns: c, rows: r}), do: CSV.encode([c | r]) |> Enum.to_list() |> to_string()
 
   def get_num_rows(%{rows: nil}), do: -1
   def get_num_rows(%{rows: _rows, num_rows: num_rows}), do: num_rows
 
-  def store_results({:ok, alert_results}, %DB.Alert{} = alert) do
-    content_csv = get_csv(alert_results)
-    num_rows = get_num_rows(alert_results)
+  def store_results({:ok, results}, %DB.Alert{} = alert) do
+    alert
+    |> Files.write(get_csv(results))
 
     alert
-    |> Files.write(content_csv)
-
-    alert
-    |> DB.Alert.run_changeset(%{
-      "results_size" => num_rows,
-      "path" => Files.fullname(alert)
-    })
+    |> DB.Alert.run_changeset(%{"results_size" => get_num_rows(results)})
     |> Repo.update!()
   end
 

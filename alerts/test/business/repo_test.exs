@@ -17,11 +17,11 @@ defmodule Business.RepoTest do
   end
 
   test "calculating status from results size and alert threshold" do
-    assert A.get_status(%{results_size: -1}, %A{}) == "broken"
-    assert A.get_status(%{results_size: 0}, %A{}) == "good"
-    assert A.get_status(%{results_size: 10}, %A{}) == "bad"
-    assert A.get_status(%{results_size: 10}, %A{threshold: 1}) == "bad"
-    assert A.get_status(%{results_size: 10}, %A{threshold: 11}) == "under threshold"
+    assert A.get_status(%{results_size: -1}) == "broken"
+    assert A.get_status(%{results_size: 0}) == "good"
+    assert A.get_status(%{results_size: 10}) == "bad"
+    assert A.get_status(%{results_size: 10, threshold: 1}) == "bad"
+    assert A.get_status(%{results_size: 10, threshold: 11}) == "under threshold"
   end
 
   test "cron scheduler validation" do

@@ -3,7 +3,6 @@ defmodule Business.LibTest do
   alias Alerts.Scheduler
   alias Alerts.Business.DB.Alert, as: A
   alias Alerts.Business.Alerts, as: Lib
-  alias Alerts.Business.Files, as: Files
   alias CustomHelper, as: H
 
   import Crontab.CronExpression
@@ -51,6 +50,7 @@ defmodule Business.LibTest do
     # Exists
     with {:ok, inserted} = fixture_struct() |> Lib.create() do
       assert inserted |> Lib.get!() !== nil
+      assert inserted.path == nil
     end
   end
 
@@ -66,16 +66,7 @@ defmodule Business.LibTest do
     end
   end
 
-  test "create alert in db and corresponding folder" do
-    # Creates the folder (context)
-    with {:ok, inserted} = fixture_struct() |> Lib.create() do
-      assert inserted.context |> Files.dirname() |> File.exists?() == true
-    end
-  end
-
-  test "updating an alert in db" do
-    # Exists
-    # Deletes scheduling job on update
+  test "updating alert database fields" do
     with {:ok, inserted} = fixture_struct_with_schedule("@reboot") |> Lib.create() do
       updated_fields = %{
         "description" => H.random_name(),
@@ -118,20 +109,19 @@ defmodule Business.LibTest do
     end
   end
 
-  test "update alert creates a new folder if the context is different" do
+  test "update sets path back to empty" do
     # Creates folder on update
-    with {:ok, inserted} = fixture_struct() |> Lib.create() do
-      pars = inserted |> fixture_struct_new_context()
-      {:ok, updated} = inserted |> Lib.update(pars)
+    with run = fixture_struct() |> Lib.create() |> Lib.run() do
+      pars = run |> fixture_struct_new_context()
+      {:ok, updated} = run |> Lib.update(pars)
 
-      # both folders exist, meaning it does not delete the previous folder
-      assert inserted.context |> Files.dirname() |> File.exists?() == true
-      assert updated.context |> Files.dirname() |> File.exists?() == true
-      assert Files.dirname(inserted.context) != Files.dirname(updated.context)
+      assert run.path !== nil
+      assert run.path |> File.exists?() == true
+      assert updated.path == nil
     end
   end
 
-  test "test run updates results_size and saves the file" do
+  test "run updates results_size and saves the file" do
     with run <- fixture_struct() |> Lib.create() |> Lib.run() do
       updated_fields = %{
         "query" => """

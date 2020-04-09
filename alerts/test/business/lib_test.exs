@@ -46,8 +46,7 @@ defmodule Business.LibTest do
   defp fixture_struct_with_schedule(%A{} = alert, s),
     do: alert |> fixture_struct(%{"schedule" => s})
 
-  test "create alert in db" do
-    # Exists
+  test "create alert db fields" do
     with {:ok, inserted} = fixture_struct() |> Lib.create() do
       assert inserted |> Lib.get!() !== nil
       assert inserted.path == nil
@@ -66,7 +65,7 @@ defmodule Business.LibTest do
     end
   end
 
-  test "updating alert database fields" do
+  test "update alert db fields" do
     with {:ok, inserted} = fixture_struct_with_schedule("@reboot") |> Lib.create() do
       updated_fields = %{
         "description" => H.random_name(),
@@ -77,6 +76,7 @@ defmodule Business.LibTest do
       pars = inserted |> fixture_struct(updated_fields)
       {:ok, updated} = inserted |> Lib.update(pars)
 
+      assert updated.path == nil
       assert updated.description == updated_fields["description"]
       assert updated.name == updated_fields["name"]
       assert updated.query == updated_fields["query"]
@@ -109,19 +109,7 @@ defmodule Business.LibTest do
     end
   end
 
-  test "update sets path back to empty" do
-    # Creates folder on update
-    with run = fixture_struct() |> Lib.create() |> Lib.run() do
-      pars = run |> fixture_struct_new_context()
-      {:ok, updated} = run |> Lib.update(pars)
-
-      assert run.path !== nil
-      assert run.path |> File.exists?() == true
-      assert updated.path == nil
-    end
-  end
-
-  test "run updates results_size and saves the file" do
+  test "run updates results_size, status and saves the file creating the folder" do
     with run <- fixture_struct() |> Lib.create() |> Lib.run() do
       updated_fields = %{
         "query" => """
@@ -130,16 +118,19 @@ defmodule Business.LibTest do
           (SELECT '#{H.random_name()}' as \"#{H.random_name()}\")
           UNION
           (SELECT '#{H.random_name()}' as \"#{H.random_name()}\")
-        """
+        """,
+        "threshold" => 5
       }
 
       pars = run |> fixture_struct(updated_fields)
       run_updated = run |> Lib.update(pars) |> Lib.run()
 
       assert run.results_size == 1
+      assert run.status == "bad"
       assert File.exists?(run.path) == true
-      assert run.status !== "exception!!!!!!"
+
       assert run_updated.results_size == 3
+      assert run_updated.status == "under threshold"
       assert File.exists?(run_updated.path) == true
     end
   end

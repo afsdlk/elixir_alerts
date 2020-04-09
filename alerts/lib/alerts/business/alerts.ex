@@ -4,6 +4,7 @@ defmodule Alerts.Business.Alerts do
   alias Alerts.Business.Files
   alias Alerts.Business.Odbc
   alias Alerts.Business.Helper, as: H
+  alias Crontab.CronExpression.Parser
 
   require Logger
 
@@ -70,7 +71,7 @@ defmodule Alerts.Business.Alerts do
     DB.Alert.scheduled_alerts()
     |> Repo.all()
     |> Enum.reduce([], fn alert, acc ->
-      case Crontab.CronExpression.Parser.parse(alert.schedule) do
+      case alert.schedule |> Parser.parse() do
         {:error, text} ->
           Logger.error("Error! #{alert.id} #{alert.schedule} #{text}")
           acc
@@ -87,7 +88,7 @@ defmodule Alerts.Business.Alerts do
   def run(alert_id) do
     alert = get!(alert_id)
     Files.create_folder(alert)
-    alert.query |> Odbc.run_query(alert.repo) |> store_results(alert)
+    Odbc.run_query(alert.query, alert.repo) |> store_results(alert)
   end
 
   def get_csv(%{rows: nil}), do: nil

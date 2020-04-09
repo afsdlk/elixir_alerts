@@ -4,7 +4,7 @@ h1
 	em
 		= link @alert.context, to: alert_path(@conn, :index, context: @alert.context)
 	= raw("&rarr;")
-	em = "#{render_repo(@alert.repo)}: #{@alert.name}"
+	em = "#{render_source(@alert.source)}: #{@alert.name}"
 
 p
   = "Time right now:"

@@ -10,9 +10,9 @@
     = error_tag f, :context
 
   div.required.form-group
-    = label f, :repo, class: "control-label"
-    = select f, :repo, Application.get_env(:alerts, :ecto_repos), class: "form-control"
-    = error_tag f, :repo
+    = label f, :source, class: "control-label"
+    = select f, :source, Application.get_env(:alerts, :data_sources) |> Map.keys, class: "form-control"
+    = error_tag f, :source
 
   div.required.form-group
     = label f, :description, class: "control-label"

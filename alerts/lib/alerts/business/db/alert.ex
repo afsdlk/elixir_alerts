@@ -30,7 +30,7 @@ defmodule Alerts.Business.DB.Alert do
 
     field(:status, :string)
 
-    field(:repo, :string)
+    field(:source, :string)
 
     field(:path, :string)
   end
@@ -85,13 +85,13 @@ defmodule Alerts.Business.DB.Alert do
     params = atomize(params_x)
 
     alert
-    |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :repo])
+    |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :source])
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
     |> C.change(status: get_status(:new))
     |> C.force_change(:query, params[:query])
-    |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> validate(:query, repo: params[:repo])
+    |> C.validate_required([:name, :description, :context, :query, :source])
+    |> validate(:query, source: params[:source])
     |> validate(:schedule)
   end
 
@@ -102,13 +102,13 @@ defmodule Alerts.Business.DB.Alert do
     params = atomize(params_x)
 
     alert
-    |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :repo])
+    |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :source])
     |> C.change(path: nil)
     |> C.change(updated_at: nowNaive())
     |> C.change(status: get_status(:updated))
     |> C.force_change(:query, params[:query])
-    |> C.validate_required([:name, :description, :context, :query, :repo])
-    |> validate(:query, repo: params[:repo])
+    |> C.validate_required([:name, :description, :context, :query, :source])
+    |> validate(:query, source: params[:source])
     |> validate(:schedule)
   end
 
@@ -118,7 +118,7 @@ defmodule Alerts.Business.DB.Alert do
     changeset
     |> C.validate_change(:query, fn _, query ->
       query
-      |> Odbc.run_query(options[:repo])
+      |> Odbc.run_query(options[:source])
       |> case do
         {:error, e} -> [{:query, "Your query has errors: " <> Poison.encode!(e)}]
         _ -> []

@@ -88,7 +88,7 @@ defmodule Alerts.Business.Alerts do
   def run(alert_id) do
     alert = get!(alert_id)
     Files.create_folder(alert)
-    Odbc.run_query(alert.query, alert.repo) |> store_results(alert)
+    Odbc.run_query(alert.query, alert.source) |> store_results(alert)
   end
 
   def get_csv(%{rows: nil}), do: nil

@@ -4,6 +4,8 @@ defmodule Business.RepoTest do
   alias Alerts.Business.DB.Alert, as: A
   alias Ecto.Changeset, as: C
 
+  @default_source "POSTGRES ALERTS"
+
   defp validate_schedule(schedule) do
     %A{}
     |> C.cast(%{schedule: schedule}, [:schedule])
@@ -13,7 +15,7 @@ defmodule Business.RepoTest do
   defp validate_query_postgres(q) do
     %A{}
     |> C.cast(%{query: q}, [:query])
-    |> A.validate(:query, repo: Alerts.Repo)
+    |> A.validate(:query, source: @default_source)
   end
 
   test "calculating status from results size and alert threshold" do

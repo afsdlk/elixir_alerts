@@ -4,7 +4,7 @@ h1
 	em
 		= link @alert.context, to: alert_path(@conn, :index, context: @alert.context)
 	= raw("&rarr;")
-	em = link "#{render_repo(@alert.repo)}: #{@alert.name}" , to: alert_path(@conn, :view, @alert.id)
+	em = link "#{render_source(@alert.source)}: #{@alert.name}" , to: alert_path(@conn, :view, @alert.id)
 	= raw("&rarr;")
 	= "Modify"
 

@@ -23,14 +23,29 @@ config :phoenix, :template_engines,
 
 config :slime, :keep_lines, true
 
-config :alerts, :repo_prefix, "Elixir.Alerts.Business.Repos."
-
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
 
-# General application configuration
-config :alerts, ecto_repos: [Alerts.Repo]
+# YOUR DATA SOURCES
+config :alerts,
+  data_sources: %{
+    "LALA" => [
+      DRIVER: "MySQL ANSI",
+      SERVER: "mysql",
+      DATABASE: "lala",
+      UID: "root",
+      PWD: "mysql",
+      INITSTMT: "SET GLOBAL read_only=1;SET GLOBAL super_read_only=1"
+    ],
+    "POSTGRES ALERTS" => [
+      DRIVER: "PostgreSQL Unicode",
+      SERVER: "alerts_db",
+      DATABASE: "alerts_dev",
+      UID: "postgres",
+      PWD: "postgres"
+    ]
+  }
 
 config :swarm,
   nodes: [:":nonode@nohost"],
@@ -39,3 +54,5 @@ config :swarm,
 config :alerts, Alerts.Scheduler,
   run_strategy: Quantum.RunStrategy.Local,
   debug_logging: false
+
+config :alerts, ecto_repos: [Alerts.Repo]

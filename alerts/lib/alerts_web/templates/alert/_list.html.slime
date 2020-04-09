@@ -6,7 +6,7 @@
           = link "name", to: alert_path(@conn, :index, context: @context, order: :name), class: "sort"
 
 				th.text-left
-          = link "repo", to: alert_path(@conn, :index, context: @context, order: :repo), class: "sort"
+          = link "source", to: alert_path(@conn, :index, context: @context, order: :source), class: "sort"
 
 				th.text-center description
 
@@ -33,7 +33,7 @@
 						= link alert.name, to: alert_path(@conn, :view, alert.id)
 
 					td.text-left style="vertical-align: middle;"
-						= render_repo(alert.repo)
+						= render_source(alert.source)
 
           td.text-left style="vertical-align: middle;"
 						 pre style="max-width: 450px;" = alert.description

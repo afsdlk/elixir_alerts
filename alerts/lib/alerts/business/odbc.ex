@@ -1,20 +1,21 @@
 defmodule Alerts.Business.Odbc do
   require Logger
 
-  defp get_odbcstring(_repo) do
-    'Driver=MySQL ANSI;Server=mysql;Trusted_Connection=False;Database=lala;UID=root;PWD=mysql;initstmt=SET GLOBAL read_only = 1;SET GLOBAL super_read_only = 1'
-    # SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY;
-    # 'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;UID=postgres;PWD=postgres;'
+  def get_odbcstring(data_source) do
+    Application.get_env(:alerts, :data_sources)[data_source]
+    |> Enum.reduce([], fn {k, v}, acc -> acc ++ ["#{k}=#{v}"] end)
+    |> Enum.join(";")
+    |> String.to_charlist()
   end
 
-  def run_query(query, repo) when is_bitstring(query),
-    do: query |> :erlang.binary_to_list() |> run_query(repo)
+  def run_query(query, source) when is_bitstring(query),
+    do: query |> :erlang.binary_to_list() |> run_query(source)
 
-  def run_query(query, repo) do
+  def run_query(query, source) do
     # @TODO: SEND TO APP STARTUP
     :odbc.start()
 
-    {:ok, db_pid} = repo |> get_odbcstring() |> :odbc.connect(auto_commit: :off)
+    {:ok, db_pid} = source |> get_odbcstring() |> :odbc.connect(auto_commit: :off)
 
     results =
       try do

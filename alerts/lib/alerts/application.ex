@@ -7,21 +7,12 @@ defmodule Alerts.Application do
   def start(_type, _args) do
     import Supervisor.Spec
 
-    # Start the Ecto repositories
-    repos = Application.get_env(:alerts, :ecto_repos) |> Enum.map(&supervisor(&1, []))
-
     # Define workers and child supervisors to be supervised
-    children =
-      repos ++
-        [
-          # Start the endpoint when the application starts
-          supervisor(AlertsWeb.Endpoint, []),
-          # Start your own worker by calling: Alerts.Worker.start_link(arg1, arg2, arg3)
-          # worker(Alerts.Worker, [arg1, arg2, arg3]),
-          if System.get_env() != :test do
-            Alerts.Scheduler
-          end
-        ]
+    children = [
+      Alerts.Repo,
+      supervisor(AlertsWeb.Endpoint, []),
+      if(System.get_env() != :test, do: Alerts.Scheduler)
+    ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

@@ -12,7 +12,7 @@ defmodule Business.LibTest do
   @default %{
     "query" => "SELECT 'a' AS a;",
     "description" => "test",
-    "repo" => "test"
+    "source" => "POSTGRES ALERTS"
   }
 
   # alerts are atom maps, vs string maps pars
@@ -36,9 +36,6 @@ defmodule Business.LibTest do
 
   defp fixture_struct(%A{} = alert, map),
     do: alert |> Map.from_struct() |> deatomize() |> Map.merge(map)
-
-  defp fixture_struct_new_context(%A{} = alert),
-    do: alert |> fixture_struct(%{"context" => H.random_name()})
 
   defp fixture_struct_with_schedule(s),
     do: %{"schedule" => s} |> fixture_struct()
@@ -119,7 +116,8 @@ defmodule Business.LibTest do
           UNION
           (SELECT '#{H.random_name()}' as \"#{H.random_name()}\")
         """,
-        "threshold" => 5
+        "threshold" => 5,
+        "context" => H.random_name()
       }
 
       pars = run |> fixture_struct(updated_fields)
@@ -128,7 +126,7 @@ defmodule Business.LibTest do
       assert run.results_size == 1
       assert run.status == "bad"
       assert File.exists?(run.path) == true
-
+      assert run.path != run_updated.path
       assert run_updated.results_size == 3
       assert run_updated.status == "under threshold"
       assert File.exists?(run_updated.path) == true

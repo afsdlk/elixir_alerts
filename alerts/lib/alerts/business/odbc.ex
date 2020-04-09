@@ -2,7 +2,9 @@ defmodule Alerts.Business.Odbc do
   require Logger
 
   defp get_odbcstring(_repo) do
-    'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;UID=postgres;PWD=postgres;'
+    'Driver=MySQL ANSI;Server=mysql;Trusted_Connection=False;Database=lala;UID=root;PWD=mysql;initstmt=SET GLOBAL read_only = 1;SET GLOBAL super_read_only = 1'
+    # SET SESSION CHARACTERISTICS AS TRANSACTION READ ONLY;
+    # 'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;UID=postgres;PWD=postgres;'
   end
 
   def run_query(query, repo) when is_bitstring(query),

@@ -23,86 +23,33 @@ lala
 :odbc.stop()
 
 :odbc.start()
-odbcstring = 'Driver=MySQL UNICODE;Server=mysql;Trusted_Connection=False;Database=mysql;UID=root;PWD=mysql;'
+odbcstring = 'Driver=MySQL ANSI;Server=mysql;Trusted_Connection=False;Database=lala;UID=root;PWD=mysql;'
 {:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
-{:selected, columns, rows} = :odbc.param_query(db_pid,'select * from db;',[])
+{:selected, columns, rows} = :odbc.param_query(db_pid,'select * from tutorials_tbl;',[])
 rows
 :odbc.commit(db_pid, :rollback)
 :odbc.disconnect(db_pid)
 :odbc.stop()
 
-rows |> Enum.map(fn tuple -> tuple |> Tuple.to_list() |> Enum.map(&IO.inspect/1) end)
-
 # mysql docker container
 docker run --rm --network=alerts_default --name mysql -e MYSQL_ROOT_PASSWORD=mysql -p 3306:3306 mysql:latest
-docker exec -it mysql bash -c "mysql -pmysql mysql"
+docker exec -it mysql bash -c "mysql -pmysql lala"
 
 CREATE USER 'root'@'%' IDENTIFIED BY 'mysql';
 GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 
+create database lala;
+create table tutorials_tbl(
+   tutorial_id INT NOT NULL AUTO_INCREMENT,
+   tutorial_title VARCHAR(100) NOT NULL,
+   tutorial_author VARCHAR(40) NOT NULL,
+   submission_date DATE,
+   PRIMARY KEY ( tutorial_id )
+);
 
-query = "select id,nsame from Alert;"
+insert into tutorials_tbl (tutorial_title, tutorial_author, submission_date) values
+('tit1', 'pepe', now()),
+('tit2', 'juan', now());
 
-{_, transaction_results} = (fn ->
-  with {:error, results} = Alerts.Repo |> Ecto.Adapters.SQL.query(query, [], timeout: 1_000) do
-   Alerts.Repo.rollback({:error, results})
-  end
-end) |> Alerts.Repo.transaction
-
-{:ok,
-  %Postgrex.Result{
-    columns: ["id", "name"],
-    command: :select,
-    connection_id: 80,
-    messages: [],
-    num_rows: 3,
-    rows: [[38, "akak"], [1, "test1"], [5, "test2dd"]]
-  }}
-
-query = 'select \'kk\' as KK;'
-
-
-:odbc.start()
-odbcstring = 'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;Trusted_Connection=False;UID=postgres;PWD=postgres;'
-{:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
-{:selected, columns, rows} = :odbc.sql_query(db_pid,query)
-:odbc.commit(db_pid, :rollback)
-:odbc.disconnect(db_pid)
-:odbc.stop()
-
-
-{:ok, %{
-  columns: columns |> Enum.map(&(:erlang.list_to_binary(&1))),
-  command: :select,
-  connection_id: db_pid,
-  messages: [],
-  num_rows: Enum.count(rows),
-  rows: rows |> Enum.map(&(&1 |> Tuple.to_list() |> Enum.map(fn item -> item |> :erlang.list_to_binary end))
-  rows |> Enum.map(&(&1 |> Tuple.to_list() |> Enum.map(fn item do :erlang.list_to_binary(item) end)))
-}}
-
-
-
-{:ok,
- %{
-   columns: columns |> Enum.map(&:erlang.list_to_binary(&1)),
-   command: :select,
-   connection_id: 1234,
-   messages: [],
-   num_rows: Enum.count(rows),
-   rows:
-     rows
-     |> Enum.map(
-       &(&1
-         |> Tuple.to_list()
-         |> Enum.map(fn
-           item
-           when is_list(item) ->
-             :erlang.list_to_binary(item)
-
-           other ->
-             other
-         end))
-     )
- }}
+SELECT * FROM tutorials_tbl;

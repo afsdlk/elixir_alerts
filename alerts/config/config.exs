@@ -30,7 +30,7 @@ import_config "#{Mix.env()}.exs"
 # YOUR DATA SOURCES
 config :alerts,
   data_sources: %{
-    "LALA" => [
+    "MYSQL TEST" => [
       DRIVER: "MySQL ANSI",
       SERVER: "mysql",
       DATABASE: "lala",

@@ -24,12 +24,12 @@ a1 = %Alerts.Business.DB.Alert{
   last_run: ~N[2020-03-25 08:26:09],
   name: "test1",
   path: "esg",
-  query: "SELECT 1 as my_value;",
-  source: "POSTGRES ALERTS",
+  query: "SELECT * FROM book;",
+  source: "MYSQL TEST",
   results_size: 1,
   schedule: nil,
   status: "under threshold",
-  threshold: 2,
+  threshold: 10,
   updated_at: ~N[2020-03-25 08:26:04]
 }
 

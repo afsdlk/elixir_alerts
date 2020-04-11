@@ -1,11 +1,28 @@
 defmodule Alerts.Business.Odbc do
   require Logger
 
+  @unknown_server [SERVER: 'unknown']
+  @could_not_connect "Could not connect to your data source"
+  @unknown_error "Unknown error, check your logs"
+  @write_query "Write queries are not allowed"
+
   def get_odbcstring(data_source) do
-    Application.get_env(:alerts, :data_sources)[data_source]
+    (Application.get_env(:alerts, :data_sources)[data_source] || @unknown_server)
     |> Enum.reduce([], fn {k, v}, acc -> acc ++ ["#{k}=#{v}"] end)
     |> Enum.join(";")
     |> String.to_charlist()
+  end
+
+  def run_and_rollback(query, db_pid) do
+    try do
+      results = db_pid |> :odbc.sql_query(query)
+      db_pid |> :odbc.commit(:rollback)
+      results
+    rescue
+      _ ->
+        db_pid |> :odbc.commit(:rollback)
+        @unknown_error
+    end
   end
 
   def run_query(query, source) when is_bitstring(query),
@@ -15,28 +32,26 @@ defmodule Alerts.Business.Odbc do
     # @TODO: SEND TO APP STARTUP
     :odbc.start()
 
-    {:ok, db_pid} = source |> get_odbcstring() |> :odbc.connect(auto_commit: :off)
-
     results =
-      try do
-        db_pid |> :odbc.sql_query(query)
-      rescue
-        _ ->
-          "Unknown error, check your logs"
-      end
+      case source |> get_odbcstring() |> :odbc.connect(auto_commit: :off) do
+        {:ok, db_pid} ->
+          results = query |> run_and_rollback(db_pid)
+          :odbc.disconnect(db_pid)
+          results
 
-    :odbc.commit(db_pid, :rollback)
-    :odbc.disconnect(db_pid)
+        _ ->
+          @could_not_connect
+      end
 
     case results do
       {:selected, c, r} ->
-        {:ok, %{columns: c, rows: r, pid: db_pid} |> process_resultset()}
+        {:ok, %{columns: c, rows: r} |> process_resultset()}
 
       {:error, msg} ->
         {:error, msg |> convert_to_string_if_charlist()}
 
       {:updated, _affected_rows} ->
-        {:error, "Write queries are not allowed"}
+        {:error, @write_query}
 
       # weird case, does this even happen?
       other ->
@@ -77,7 +92,6 @@ defmodule Alerts.Business.Odbc do
       columns: process_columns(r.columns),
       rows: process_rows(r.rows),
       command: :select,
-      connection_id: r.pid,
       messages: [],
       num_rows: Enum.count(r.rows)
     }

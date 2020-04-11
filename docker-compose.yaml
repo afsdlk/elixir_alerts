@@ -37,6 +37,22 @@ services:
     command:
       - ./bin/boot.sh
 
+  test_mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile.MySqlTest
+    image: mysql:latest
+    container_name: test_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - secure-file-priv=/docker-entrypoint-initdb.d
+    volumes:
+      - type: bind
+        source: ./test_dumps/mysql/
+        target: /docker-entrypoint-initdb.d
+
 volumes:
   alerts-postgres-data:
   alerts-postgres-home:

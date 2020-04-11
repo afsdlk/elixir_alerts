@@ -2,7 +2,7 @@
 
 # Create new app without docker file
 docker build -t alerts:latest -<<EOF
-FROM elixir:1.6.1
+FROM elixir:1.10
 EOF
 
 # Just once: Create your new phoenix project
@@ -31,25 +31,8 @@ rows
 :odbc.disconnect(db_pid)
 :odbc.stop()
 
-# mysql docker container
-docker run --rm --network=alerts_default --name mysql -e MYSQL_ROOT_PASSWORD=mysql -p 3306:3306 mysql:latest
-docker exec -it mysql bash -c "mysql -pmysql lala"
-
-CREATE USER 'root'@'%' IDENTIFIED BY 'mysql';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-
-create database lala;
-create table tutorials_tbl(
-   tutorial_id INT NOT NULL AUTO_INCREMENT,
-   tutorial_title VARCHAR(100) NOT NULL,
-   tutorial_author VARCHAR(40) NOT NULL,
-   submission_date DATE,
-   PRIMARY KEY ( tutorial_id )
-);
-
-insert into tutorials_tbl (tutorial_title, tutorial_author, submission_date) values
-('tit1', 'pepe', now()),
-('tit2', 'juan', now());
-
-SELECT * FROM tutorials_tbl;
+# test database in mysql
+docker-compose up test_mysql
+docker exec -it test_mysql bash -c 'export MYSQL_PWD=mysql; echo "select * from book" |  mysql -P 3306  test'
+docker exec -it test_mysql bash -c 'export MYSQL_PWD=mysql;  mysql -P 3306  test'
+docker exec -it test_mysql bash

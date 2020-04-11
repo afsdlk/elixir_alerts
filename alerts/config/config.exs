@@ -32,16 +32,16 @@ config :alerts,
   data_sources: %{
     "MYSQL TEST" => [
       DRIVER: "MySQL ANSI",
-      SERVER: "mysql",
-      DATABASE: "lala",
+      SERVER: "test_mysql",
+      DATABASE: "test",
       UID: "root",
       PWD: "mysql",
       INITSTMT: "SET GLOBAL read_only=1;SET GLOBAL super_read_only=1"
     ],
-    "POSTGRES ALERTS" => [
+    "POSTGRES TEST" => [
       DRIVER: "PostgreSQL Unicode",
-      SERVER: "alerts_db",
-      DATABASE: "alerts_dev",
+      SERVER: "test_postgres",
+      DATABASE: "test",
       UID: "postgres",
       PWD: "postgres"
     ]

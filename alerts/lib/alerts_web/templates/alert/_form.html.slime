@@ -11,7 +11,7 @@
 
   div.required.form-group
     = label f, :source, class: "control-label"
-    = select f, :source, Application.get_env(:alerts, :data_sources) |> Map.keys, class: "form-control"
+    = select f, :source, ["<<unknown>>"] ++ (Application.get_env(:alerts, :data_sources) |> Map.keys), class: "form-control"
     = error_tag f, :source
 
   div.required.form-group

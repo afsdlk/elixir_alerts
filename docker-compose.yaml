@@ -47,11 +47,34 @@ services:
       - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=mysql
-      - secure-file-priv=/docker-entrypoint-initdb.d
+      - secure-file-priv=/data
     volumes:
       - type: bind
-        source: ./test_dumps/mysql/
+        source: ./test_dumps/mysql
         target: /docker-entrypoint-initdb.d
+      - type: bind
+        source: ./test_dumps/data
+        target: /data
+
+  test_postgres:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.MySqlTest
+    image: postgres:latest
+    container_name: test_postgres
+    ports:
+      - "5433:5433"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - PGPORT=5433
+    volumes:
+      - type: bind
+        source: ./test_dumps/postgres
+        target: /docker-entrypoint-initdb.d
+      - type: bind
+        source: ./test_dumps/data
+        target: /data
+
 
 volumes:
   alerts-postgres-data:

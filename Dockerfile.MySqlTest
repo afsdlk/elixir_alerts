@@ -1,3 +1,4 @@
 FROM mysql:latest
-RUN echo "secure_file_priv=/docker-entrypoint-initdb.d" >> /etc/mysql/my.cnf
+# remember to build the container
+RUN echo "secure-file-priv='/data'" >> /etc/mysql/my.cnf
 EXPOSE 3306

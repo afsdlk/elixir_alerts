@@ -10,8 +10,10 @@ CREATE TABLE book(
    PRIMARY KEY ( id )
 );
 
+SET GLOBAL local_infile = 1;
+
 LOAD DATA
-INFILE '/docker-entrypoint-initdb.d/books.csv'
+INFILE '/data/books.csv'
 INTO TABLE book
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'

@@ -9,6 +9,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 if [ "$REMOVE_TEST_CONTAINERS" == "-d" ]; then
   docker-compose rm -fsv test_mysql
+  docker-compose rm -fsv test_postgres
 fi
 
 docker-compose up --build

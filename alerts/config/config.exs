@@ -36,7 +36,7 @@ config :alerts,
       DATABASE: "test",
       UID: "root",
       PWD: "mysql",
-      INITSTMT: "SET GLOBAL read_only=1;SET GLOBAL super_read_only=1"
+      INITSTMT: "SET GLOBAL read_only=1;SET GLOBAL super_read_only=1;"
     ],
     "POSTGRES TEST" => [
       DRIVER: "PostgreSQL Unicode",

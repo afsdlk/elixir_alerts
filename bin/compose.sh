@@ -3,6 +3,7 @@
 REMOVE_TEST_CONTAINERS=${1:-0}
 
 (
+reset
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 ./stop.sh
 

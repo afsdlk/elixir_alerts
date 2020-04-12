@@ -11,7 +11,7 @@ defmodule Business.RepoTest do
     |> A.validate(:schedule)
   end
 
-  defp validate_query_postgres(q) do
+  defp validate_query(q) do
     %A{}
     |> C.cast(%{query: q}, [:query])
     |> A.validate(:query, source: @default_source)
@@ -32,10 +32,10 @@ defmodule Business.RepoTest do
     assert validate_schedule("BADSTUFF").errors !== []
   end
 
-  test "wrong queries (postgres)" do
-    assert validate_query_postgres("<<BAD QUERY>>").errors !== []
-    assert validate_query_postgres("DROP DATABASE alerts_test;").errors !== []
-    assert validate_query_postgres("SELECT 'A' AS A;").errors == []
+  test "wrong queries" do
+    assert validate_query("<<BAD QUERY>>").errors !== []
+    assert validate_query("DROP DATABASE test;").errors !== []
+    assert validate_query("SELECT 'A' AS A;").errors == []
   end
 
   test "write queries fail with error and do not affect db (rollback)" do
@@ -44,7 +44,7 @@ defmodule Business.RepoTest do
     delete_query = "DELETE FROM book;"
 
     {:ok, defore_delete} = Alerts.Business.Odbc.run_query(select, @default_source)
-    assert validate_query_postgres(delete_query).errors !== []
+    assert validate_query(delete_query).errors !== []
     {:ok, after_delete} = Alerts.Business.Odbc.run_query(select, @default_source)
     assert defore_delete.num_rows == after_delete.num_rows
 
@@ -56,8 +56,15 @@ defmodule Business.RepoTest do
     """
 
     {:ok, before_insert} = Alerts.Business.Odbc.run_query(select, @default_source)
-    assert validate_query_postgres(insert_query).errors !== []
+    assert validate_query(insert_query).errors !== []
     {:ok, after_insert} = Alerts.Business.Odbc.run_query(select, @default_source)
     assert before_insert.num_rows == after_insert.num_rows
+
+    drop_query = "DROP DATABASE test;"
+
+    {:ok, before_drop} = Alerts.Business.Odbc.run_query(select, @default_source)
+    assert validate_query(drop_query).errors !== []
+    {:ok, after_drop} = Alerts.Business.Odbc.run_query(select, @default_source)
+    assert before_drop.num_rows == after_drop.num_rows
   end
 end

@@ -1,6 +1,7 @@
 defmodule Business.RepoTest do
   use ExUnit.Case
   alias Alerts.Business.DB.Alert, as: A
+  alias Alerts.Business.Odbc
   alias Ecto.Changeset, as: C
 
   @default_source "TEST MYSQL"
@@ -38,14 +39,14 @@ defmodule Business.RepoTest do
     assert validate_query("SELECT 'A' AS A;").errors == []
   end
 
-  test "write queries fail with error and do not affect db (rollback)" do
+  test "write queries are detected as invalid and do not affect db (rollback or read only)" do
     select = "SELECT * FROM book;"
 
     delete_query = "DELETE FROM book;"
 
-    {:ok, defore_delete} = Alerts.Business.Odbc.run_query(select, @default_source)
+    {:ok, defore_delete} = Odbc.run_query(select, @default_source)
     assert validate_query(delete_query).errors !== []
-    {:ok, after_delete} = Alerts.Business.Odbc.run_query(select, @default_source)
+    {:ok, after_delete} = Odbc.run_query(select, @default_source)
     assert defore_delete.num_rows == after_delete.num_rows
 
     insert_query = """
@@ -55,16 +56,16 @@ defmodule Business.RepoTest do
         (10000, 'test', 'test', 20190120);
     """
 
-    {:ok, before_insert} = Alerts.Business.Odbc.run_query(select, @default_source)
+    {:ok, before_insert} = Odbc.run_query(select, @default_source)
     assert validate_query(insert_query).errors !== []
-    {:ok, after_insert} = Alerts.Business.Odbc.run_query(select, @default_source)
+    {:ok, after_insert} = Odbc.run_query(select, @default_source)
     assert before_insert.num_rows == after_insert.num_rows
 
     drop_query = "DROP DATABASE test;"
 
-    {:ok, before_drop} = Alerts.Business.Odbc.run_query(select, @default_source)
+    {:ok, before_drop} = Odbc.run_query(select, @default_source)
     assert validate_query(drop_query).errors !== []
-    {:ok, after_drop} = Alerts.Business.Odbc.run_query(select, @default_source)
+    {:ok, after_drop} = Odbc.run_query(select, @default_source)
     assert before_drop.num_rows == after_drop.num_rows
   end
 end

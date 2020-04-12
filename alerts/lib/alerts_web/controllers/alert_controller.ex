@@ -76,16 +76,28 @@ defmodule AlertsWeb.AlertController do
   end
 
   def run(conn, params = %{"id" => alert_id}) do
-    alert = Alerts.run(alert_id)
+    {alert, results} = Alerts.run(alert_id)
 
     {level, msg} =
-      case alert.results_size do
-        -1 ->
-          {:error, ["Alert ", Phoenix.HTML.Tag.content_tag(:strong, alert.name), " is broken"]}
+      case results do
+        {:error, message} ->
+          {:error,
+           [
+             "Alert ",
+             Phoenix.HTML.Tag.content_tag(:strong, alert.name),
+             " is broken. ",
+             "Error: #{message}"
+           ]}
 
         _ ->
           {:info,
-           ["Alert ", Phoenix.HTML.Tag.content_tag(:strong, alert.name), " run succesfully"]}
+           [
+             "Alert ",
+             Phoenix.HTML.Tag.content_tag(:strong, alert.name),
+             " run succesfully. ",
+             "Status: ",
+             AlertsWeb.AlertView.render_status(alert)
+           ]}
       end
 
     case params["follow"] do

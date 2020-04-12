@@ -1,6 +1,5 @@
 defmodule Business.RepoTest do
   use ExUnit.Case
-  alias Alerts.Repo
   alias Alerts.Business.DB.Alert, as: A
   alias Ecto.Changeset, as: C
 
@@ -40,12 +39,14 @@ defmodule Business.RepoTest do
   end
 
   test "write queries fail with error and do not affect db (rollback)" do
-    delete_query = "DELETE FROM alert;"
+    select = "SELECT * FROM book;"
 
-    with before_count <- A |> Repo.all() |> Enum.count() do
-      assert validate_query_postgres(delete_query).errors !== []
-      assert A |> Repo.all() |> Enum.count() == before_count
-    end
+    delete_query = "DELETE FROM book;"
+
+    {:ok, defore_delete} = Alerts.Business.Odbc.run_query(select, @default_source)
+    assert validate_query_postgres(delete_query).errors !== []
+    {:ok, after_delete} = Alerts.Business.Odbc.run_query(select, @default_source)
+    assert defore_delete.num_rows == after_delete.num_rows
 
     insert_query = """
       INSERT INTO book
@@ -54,9 +55,9 @@ defmodule Business.RepoTest do
         (10000, 'test', 'test', 20190120);
     """
 
-    with before_count <- A |> Repo.all() |> Enum.count() do
-      assert validate_query_postgres(insert_query).errors !== []
-      assert A |> Repo.all() |> Enum.count() == before_count
-    end
+    {:ok, before_insert} = Alerts.Business.Odbc.run_query(select, @default_source)
+    assert validate_query_postgres(insert_query).errors !== []
+    {:ok, after_insert} = Alerts.Business.Odbc.run_query(select, @default_source)
+    assert before_insert.num_rows == after_insert.num_rows
   end
 end

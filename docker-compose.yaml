@@ -57,9 +57,6 @@ services:
         target: /data
 
   test_postgres:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.MySqlTest
     image: postgres:latest
     container_name: test_postgres
     ports:

@@ -12,7 +12,7 @@ defmodule Business.LibTest do
   @default %{
     "query" => "SELECT 'a' AS a;",
     "description" => "test",
-    "source" => "POSTGRES ALERTS"
+    "source" => "MYSQL TEST"
   }
 
   # alerts are atom maps, vs string maps pars

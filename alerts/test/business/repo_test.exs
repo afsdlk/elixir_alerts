@@ -4,7 +4,7 @@ defmodule Business.RepoTest do
   alias Alerts.Business.DB.Alert, as: A
   alias Ecto.Changeset, as: C
 
-  @default_source "POSTGRES ALERTS"
+  @default_source "MYSQL TEST"
 
   defp validate_schedule(schedule) do
     %A{}
@@ -48,10 +48,10 @@ defmodule Business.RepoTest do
     end
 
     insert_query = """
-      INSERT INTO alert
-        (id, name, context, query, inserted_at, updated_at)
+      INSERT INTO book
+        (id, title, author, publication_date)
       VALUES
-        (10000000, 'test', 'test', 'test', now(), now());
+        (10000, 'test', 'test', 20190120);
     """
 
     with before_count <- A |> Repo.all() |> Enum.count() do

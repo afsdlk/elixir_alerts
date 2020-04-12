@@ -42,6 +42,7 @@ config :alerts,
       DRIVER: "PostgreSQL Unicode",
       SERVER: "test_postgres",
       DATABASE: "test",
+      PORT: 5433,
       UID: "postgres",
       PWD: "postgres"
     ]

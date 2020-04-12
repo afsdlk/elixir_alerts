@@ -25,6 +25,20 @@ defmodule Alerts.Business.Odbc do
     end
   end
 
+  def connect(odbc_string), do: odbc_string |> :odbc.connect(auto_commit: :off)
+
+  def run_query_odbc_connection_string(query, odbc_string) do
+    case connect(odbc_string) do
+      {:ok, db_pid} ->
+        results = query |> run_and_rollback(db_pid)
+        :odbc.disconnect(db_pid)
+        results
+
+      _ ->
+        {:error, @could_not_connect}
+    end
+  end
+
   def run_query(query, source) when is_bitstring(query),
     do: query |> :erlang.binary_to_list() |> run_query(source)
 
@@ -32,18 +46,7 @@ defmodule Alerts.Business.Odbc do
     # @TODO: SEND TO APP STARTUP
     :odbc.start()
 
-    results =
-      case source |> get_odbcstring() |> :odbc.connect(auto_commit: :off) do
-        {:ok, db_pid} ->
-          results = query |> run_and_rollback(db_pid)
-          :odbc.disconnect(db_pid)
-          results
-
-        _ ->
-          @could_not_connect
-      end
-
-    case results do
+    case run_query_odbc_connection_string(query, get_odbcstring(source)) do
       {:selected, c, r} ->
         {:ok, %{columns: c, rows: r} |> process_resultset()}
 

@@ -25,7 +25,7 @@ a1 = %Alerts.Business.DB.Alert{
   name: "test1",
   path: "esg",
   query: "SELECT * FROM book;",
-  source: "MYSQL TEST",
+  source: "TEST MYSQL",
   results_size: 1,
   schedule: nil,
   status: "under threshold",

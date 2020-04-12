@@ -30,15 +30,15 @@ import_config "#{Mix.env()}.exs"
 # YOUR DATA SOURCES
 config :alerts,
   data_sources: %{
-    "MYSQL TEST" => [
+    "TEST MYSQL" => [
       DRIVER: "MySQL ANSI",
       SERVER: "test_mysql",
       DATABASE: "test",
       UID: "root",
       PWD: "mysql",
-      INITSTMT: "SET GLOBAL read_only=1;SET GLOBAL super_read_only=1;"
+      INITSTMT: "SET SESSION TRANSACTION READ ONLY;"
     ],
-    "POSTGRES TEST" => [
+    "TEST POSTGRES" => [
       DRIVER: "PostgreSQL Unicode",
       SERVER: "test_postgres",
       DATABASE: "test",

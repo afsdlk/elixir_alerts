@@ -3,7 +3,7 @@ defmodule Business.RepoTest do
   alias Alerts.Business.DB.Alert, as: A
   alias Ecto.Changeset, as: C
 
-  @default_source "MYSQL TEST"
+  @default_source "TEST MYSQL"
 
   defp validate_schedule(schedule) do
     %A{}

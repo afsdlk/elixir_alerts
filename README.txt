@@ -22,14 +22,14 @@ lala
 :odbc.disconnect(db_pid)
 :odbc.stop()
 
-:odbc.start()
-odbcstring = 'Driver=MySQL ANSI;Server=mysql;Trusted_Connection=False;Database=lala;UID=root;PWD=mysql;'
-{:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
-{:selected, columns, rows} = :odbc.param_query(db_pid,'select * from tutorials_tbl;',[])
-rows
-:odbc.commit(db_pid, :rollback)
-:odbc.disconnect(db_pid)
-:odbc.stop()
+  :odbc.start()
+  odbcstring = 'Driver=MySQL ANSI;Server=test_mysql;Trusted_Connection=False;Database=test;UID=root;PWD=mysql;'
+  {:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
+  {:selected, columns, rows} = :odbc.param_query(db_pid,'select * from book;',[])
+  rows
+  :odbc.commit(db_pid, :rollback)
+  :odbc.disconnect(db_pid)
+  :odbc.stop()
 
 # test database in mysql
 docker-compose up test_mysql

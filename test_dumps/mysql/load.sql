@@ -1,7 +1,6 @@
 DROP DATABASE IF EXISTS test;
 CREATE DATABASE IF NOT EXISTS test;
 USE test;
-SET global local_infile = 1;
 
 CREATE TABLE book(
    id INT NOT NULL AUTO_INCREMENT,

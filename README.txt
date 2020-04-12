@@ -9,7 +9,7 @@ EOF
 docker container run  --rm -v /Users/juanse/experiments/Alerts:/app -w /app -it alerts:latest bash -c " mix local.hex --force; mix local.rebar --force; mix archive.install --force https://github.com/phoenixframework/archives/raw/master/phx_new.ez; mix phx.new alerts"
 
 exec.sh "iex --erl '-kernel shell_history enabled' -S mix"
-exec.sh "mix test"
+exec.sh "MIX_ENV=test mix test --trace"
 exec.sh "mix deps.compile file_system"
 exec.sh "mix format mix.exs 'lib/**/*.{ex,exs}' 'test/**/*.{ex,exs}'"
 

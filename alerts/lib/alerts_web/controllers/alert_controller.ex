@@ -85,8 +85,12 @@ defmodule AlertsWeb.AlertController do
            [
              "Alert ",
              Phoenix.HTML.Tag.content_tag(:strong, alert.name),
-             " is broken. ",
-             "Error: #{message}"
+             " is ",
+             AlertsWeb.AlertView.render_status(alert),
+             Phoenix.HTML.Tag.tag(:br),
+             Phoenix.HTML.Tag.tag(:br),
+             "Error message is ",
+             message
            ]}
 
         _ ->
@@ -94,8 +98,10 @@ defmodule AlertsWeb.AlertController do
            [
              "Alert ",
              Phoenix.HTML.Tag.content_tag(:strong, alert.name),
-             " run succesfully. ",
-             "Status: ",
+             " run succesfully",
+             Phoenix.HTML.Tag.tag(:br),
+             Phoenix.HTML.Tag.tag(:br),
+             "Alert status is ",
              AlertsWeb.AlertView.render_status(alert)
            ]}
       end

@@ -89,9 +89,8 @@ defmodule Alerts.Business.Alerts do
     alert = get!(alert_id)
     Files.create_folder(alert)
     results = alert.query |> Odbc.run_query(alert.source)
-    results |> store_results(alert)
 
-    {alert, results}
+    {results |> store_results(alert), results}
   end
 
   def get_csv(%{rows: nil}), do: nil
@@ -100,6 +99,8 @@ defmodule Alerts.Business.Alerts do
   def get_num_rows(%{rows: nil}), do: -1
   def get_num_rows(%{rows: _rows, num_rows: num_rows}), do: num_rows
 
+  # TODO put last status message in db, case of error
+  # display it in the front
   def store_results({:ok, results}, %DB.Alert{} = alert) do
     alert
     |> Files.write(get_csv(results))
@@ -111,10 +112,7 @@ defmodule Alerts.Business.Alerts do
 
   def store_results(_, %DB.Alert{} = alert) do
     alert
-    |> DB.Alert.run_changeset(%{
-      "results_size" => -1,
-      "path" => Files.fullname(alert)
-    })
+    |> DB.Alert.run_changeset(%{"results_size" => -1})
     |> Repo.update!()
   end
 end

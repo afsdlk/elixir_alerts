@@ -120,7 +120,7 @@ defmodule Alerts.Business.DB.Alert do
       query
       |> Odbc.run_query(options[:source])
       |> case do
-        {:error, e} -> [{:query, "Your query has errors: " <> Poison.encode!(e)}]
+        {:error, e} -> [{:query, "ERROR: " <> Poison.encode!(e)}]
         _ -> []
       end
     end)

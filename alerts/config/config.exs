@@ -51,8 +51,4 @@ config :swarm,
   nodes: [:":nonode@nohost"],
   sync_nodes_timeout: 0
 
-config :alerts, Alerts.Scheduler,
-  run_strategy: Quantum.RunStrategy.Local,
-  debug_logging: false
-
 config :alerts, ecto_repos: [Alerts.Repo]

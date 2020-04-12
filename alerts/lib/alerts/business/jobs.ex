@@ -5,7 +5,7 @@ defmodule Alerts.Business.Jobs do
     %Quantum.Job{
       name: job_name,
       overlap: false,
-      run_strategy: %Quantum.RunStrategy.Local{nodes: nil},
+      run_strategy: %Quantum.RunStrategy.Random{nodes: :cluster},
       schedule: Crontab.CronExpression.Parser.parse!(schedule),
       state: :active,
       task: task,
@@ -20,8 +20,10 @@ defmodule Alerts.Business.Jobs do
     :ok =
       Scheduler.new_job()
       |> Quantum.Job.set_name(job_name)
+      |> Quantum.Job.set_run_strategy(%Quantum.RunStrategy.Random{nodes: :cluster})
       |> Quantum.Job.set_schedule(Crontab.CronExpression.Parser.parse!(schedule))
       |> Quantum.Job.set_task(task)
+      |> Quantum.Job.set_state(:active)
       |> Scheduler.add_job()
 
     job_name

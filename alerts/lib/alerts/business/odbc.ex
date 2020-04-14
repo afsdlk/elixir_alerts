@@ -43,9 +43,6 @@ defmodule Alerts.Business.Odbc do
     do: query |> :erlang.binary_to_list() |> run_query(source)
 
   def run_query(query, source) do
-    # @TODO: SEND TO APP STARTUP
-    :odbc.start()
-
     case run_query_odbc_connection_string(query, get_odbcstring(source)) do
       {:selected, c, r} ->
         {:ok, %{columns: c, rows: r} |> process_resultset()}

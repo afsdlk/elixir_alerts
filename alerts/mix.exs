@@ -20,7 +20,7 @@ defmodule Alerts.Mixfile do
   def application do
     [
       mod: {Alerts.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :odbc]
     ]
   end
 

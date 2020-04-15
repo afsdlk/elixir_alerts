@@ -43,7 +43,9 @@
 						= render_source(alert.source)
 
           td.text-left style="vertical-align: middle;"
-						 pre style="max-width: 250px;" = alert.description
+						 pre style="max-width:250px;"
+						 	= alert.description
+
 
           td.text-center style="vertical-align: middle;"
 						= render_total(alert.results_size)

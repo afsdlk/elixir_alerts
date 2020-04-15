@@ -85,7 +85,8 @@ defmodule Alerts.Business.DB.Alert do
     params = atomize(params_x)
 
     alert
-    |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :source])
+    |> C.cast(params, [:name, :description, :schedule, :threshold, :source])
+    |> C.change(context: :string.uppercase(params[:context]))
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
     |> C.change(status: get_status(:new))
@@ -103,7 +104,7 @@ defmodule Alerts.Business.DB.Alert do
 
     alert
     |> C.cast(params, [:name, :description, :context, :schedule, :threshold, :source])
-    |> C.change(path: nil)
+    |> C.change(context: :string.uppercase(params[:context]))
     |> C.change(updated_at: nowNaive())
     |> C.change(status: get_status(:updated))
     |> C.force_change(:query, params[:query])

@@ -1,18 +1,29 @@
 = form_for @alert_changeset, alert_path(@conn, @action, @extra), fn f ->
-  div.required.form-group
-    = label f, :name, class: "control-label"
-    = text_input f, :name, class: "form-control"
-    = error_tag f, :name
+  div.row
+    div.form-group.required.col-md-3
+      = label f, :context, class: "control-label"
+      = text_input f, :context, class: "form-control text-uppercase"
+      = error_tag f, :context
 
-  div.required.form-group
-    = label f, :context, class: "control-label"
-    = text_input f, :context, class: "form-control"
-    = error_tag f, :context
+    div.form-group.required.col-md-3
+      = label f, :name, class: "control-label"
+      = text_input f, :name, class: "form-control"
+      = error_tag f, :name
 
-  div.required.form-group
-    = label f, :source, class: "control-label"
-    = select f, :source, ["<<unknown>>"] ++ (Application.get_env(:alerts, :data_sources) |> Map.keys), class: "form-control"
-    = error_tag f, :source
+    div.form-group.required.col-md-2
+      = label f, :source, "Data source", class: "control-label"
+      = select f, :source, ["<<unknown>>"] ++ (Application.get_env(:alerts, :data_sources) |> Map.keys), class: "form-control"
+      = error_tag f, :source
+
+    div.form-group.col-md-2
+      = label f, :schedule, class: "control-label"
+      = text_input f, :schedule, class: "form-control"
+      = error_tag f, :schedule
+
+    div.form-group.col-md-2
+      = label f, :threshold, class: "control-label"
+      = text_input f, :threshold, class: "form-control"
+      = error_tag f, :threshold
 
   div.required.form-group
     = label f, :description, class: "control-label"
@@ -20,19 +31,11 @@
     = error_tag f, :description
     div.required.form-group
 
-    = label f, :query, class: "control-label"
+    = label f, :query, "SQL", class: "control-label"
     = textarea f, :query, class: "form-control", rows: 5
     = error_tag f, :query
 
-  div.form-group
-    = label f, :schedule, class: "control-label"
-    = text_input f, :schedule, class: "form-control"
-    = error_tag f, :schedule
 
-  div.form-group
-    = label f, :threshold, class: "control-label"
-    = text_input f, :threshold, class: "form-control"
-    = error_tag f, :threshold
-
-  div class="form-group"
+  div.text-right class="form-group"
     = submit @submit, class: "btn btn-primary"
+    = link "Delete", to: alert_path(@conn, :delete, f.id), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger"

@@ -121,12 +121,14 @@ defmodule Business.LibTest do
       }
 
       pars = run |> fixture_struct(updated_fields)
-      {run_updated, _} = run |> Lib.update(pars) |> Lib.run()
+      {update, _} = run |> Lib.update(pars)
+      {run_updated, _} |> Lib.run()
 
       assert run.results_size == 1
       assert run.status == "bad"
       assert File.exists?(run.path) == true
       assert run.path != run_updated.path
+      assert run.path == update.path
       assert run_updated.results_size == 3
       assert run_updated.status == "under threshold"
       assert File.exists?(run_updated.path) == true

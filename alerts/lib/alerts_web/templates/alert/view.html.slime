@@ -4,72 +4,85 @@ h1
 	em
 		= link @alert.context, to: alert_path(@conn, :index, context: @alert.context)
 	= raw("&rarr;")
-	em = "#{render_source(@alert.source)}: #{@alert.name}"
+	em = @alert.name
 
 p
   = "Time right now:"
   = "Europe/Paris" |> Timex.now() |> Timex.format!("%Y-%m-%d %H:%M:%S", :strftime)
 
-p.text-right
-	= link "Modify this alert", to: alert_path(@conn, :edit, @alert.id), method: :get, class: "btn btn-default btn-primary"
-	= link "Delete this alert", to: alert_path(@conn, :delete, @alert.id), method: :delete, data: [confirm: "Delete alert #{@alert.id}. Are you sure?"], class: "btn btn-danger"
-  = link "Create alert", to: alert_path(@conn, :new), class: "button btn btn-default btn-success"
 
-
-div.col-md-6
-	table.table width="auto"
-		tbody
-			tr
-				th.text-right style="vertical-align:middle;" Id
-				td = @alert.id
-
-			tr
-				th.text-right style="vertical-align:middle;" Status
-				td = render_status(@alert)
-
-			tr
-				th.text-right style="vertical-align:middle;"
-					= form_tag(alert_path(@conn, :run, @alert.id, [follow: :run]), class: "form-inline") do
-						button.btn.btn-default.font-weight-bold type="submit" run
-				td style="vertical-align:middle;"
-					= render_date(@alert.last_run)
-
-			= if @alert.results_size || 0 > 0 do
+div.row
+	div.col-md-8.table-responsive
+		table.table
+			tbody
 				tr
-					th.text-right style="vertical-align:middle;" Results
-	        td = "#{render_total(@alert.results_size)}"
-			tr
-				th.text-right style="vertical-align:middle;" Threshold
-        td = @alert.threshold
+					th.text-right style="vertical-align:middle;" Id
+					td = @alert.id
+				tr
+					th.text-right style="vertical-align:middle;" Name
+					td = @alert.name
+				tr
+					th.text-right style="vertical-align:middle;" Context
+					td = @alert.context
+				tr
+					th.text-right style="vertical-align:middle;" Data source
+					td = render_source(@alert.source)
+				tr
+					th.text-right style="vertical-align:middle;" Schedule
+					td = render_schedule(@alert)
+				tr
+					th.text-right style="vertical-align:middle;" Threshold
+		      td = @alert.threshold
+				tr
+					th.text-right style="vertical-align:middle;" Description
+					td.text-left
+						div style="display: table;table-layout: fixed;width: 100%;"
+							pre = @alert.description
+				tr
+					th.text-right style="vertical-align:middle;" SQL
+					td.text-left
+						div style="display: table;table-layout: fixed;width: 100%;"
+							pre = @alert.query
 
-      = if @alert.path do
-		    tr
-			    th.text-right style="vertical-align:middle;" Location
-          td
-						= form_tag(alert_path(@conn, :csv, @alert.id), method: "post", class: "form-inline") do
-							button.btn-link type="submit"
-								= @alert.path
 
-			tr
-				th.text-right style="vertical-align:middle;" Schedule
-				td = render_schedule(@alert)
+	div.col-md-4.table-responsive
+		table.table
+			tbody
+				tr
+					th.text-right style="vertical-align:middle;"
+						= form_tag(alert_path(@conn, :run, @alert.id, [follow: :run]), class: "form-inline") do
+							button.btn.btn-default.font-weight-bold type="submit" last run
+					td style="vertical-align:middle;"
+						= render_date(@alert.last_run)
 
-			tr
-				th.text-right style="vertical-align:middle;" Alert created at
-				td = render_date(@alert.inserted_at)
+				= if @alert.path do
+			    tr
+				    th.text-right style="vertical-align:middle;" File location
+	          td
+							= form_tag(alert_path(@conn, :csv, @alert.id), method: "post", class: "form-inline") do
+								button.btn-link type="submit"
+									= @alert.path
 
-			tr
-				th.text-right style="vertical-align:middle;" Last modified
-				td = render_date(@alert.updated_at)
+				= if @alert.results_size || 0 > 0 do
+					tr
+						th.text-right style="vertical-align:middle;" Results
+		        td = "#{render_total(@alert.results_size)}"
 
-			tr
-				th.text-right style="vertical-align:middle;" Description
-				td.text-left
-					pre = @alert.description
+				tr
+					th.text-right style="vertical-align:middle;" Status
+					td = render_status(@alert)
 
-			tr
-				th.text-right style="vertical-align:middle;" Source sql
-				td.text-left
-					pre = @alert.query
+				tr
+					th.text-right style="vertical-align:middle;" Alert created at
+					td = render_date(@alert.inserted_at)
+
+				tr
+					th.text-right style="vertical-align:middle;" Last modified
+					td = render_date(@alert.updated_at)
 
 div.clearfix
+
+p.text-right
+	= link "Edit", to: alert_path(@conn, :edit, @alert.id), method: :get, class: "btn btn-default btn-primary"
+	= link "Delete", to: alert_path(@conn, :delete, @alert.id), method: :delete, data: [confirm: "Delete alert #{@alert.id}. Are you sure?"], class: "btn btn-danger"
+  = link "New alert", to: alert_path(@conn, :new), class: "button btn btn-default btn-success"

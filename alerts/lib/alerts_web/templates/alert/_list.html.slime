@@ -3,15 +3,19 @@
 		thead
 			tr
 				th.text-left
+					= link "id", to: alert_path(@conn, :index, context: @context, order: :id), class: "sort"
+
+				th.text-left
           = link "name", to: alert_path(@conn, :index, context: @context, order: :name), class: "sort"
 
 				th.text-left
-          = link "source", to: alert_path(@conn, :index, context: @context, order: :source), class: "sort"
+          = link "data source", to: alert_path(@conn, :index, context: @context, order: :source), class: "sort"
 
 				th.text-center description
 
       	th.text-center
-          = link "rows", to: alert_path(@conn, :index, context: @context, order: :results_size), class: "sort"
+          = link "results", to: alert_path(@conn, :index, context: @context, order: :results_size), class: "sort"
+
 				th.text-center threshold
 
         th.text-center
@@ -21,7 +25,7 @@
           = link "schedule", to: alert_path(@conn, :index, context: @context, order: :schedule), class: "sort"
 
 				th.text-center
-          = link "location", to: alert_path(@conn, :index, context: @context, order: :path), class: "sort"
+          = link "File location", to: alert_path(@conn, :index, context: @context, order: :path), class: "sort"
 
 				th.text-center actions
 				th.text-center dates
@@ -30,13 +34,16 @@
 			= for alert <- @alerts do
 				tr
 					td.text-left style="vertical-align: middle;"
+						= link alert.id, to: alert_path(@conn, :view, alert.id)
+
+					td.text-left style="vertical-align: middle;"
 						= link alert.name, to: alert_path(@conn, :view, alert.id)
 
 					td.text-left style="vertical-align: middle;"
 						= render_source(alert.source)
 
           td.text-left style="vertical-align: middle;"
-						 pre style="max-width: 450px;" = alert.description
+						 pre style="max-width: 250px;" = alert.description
 
           td.text-center style="vertical-align: middle;"
 						= render_total(alert.results_size)
@@ -65,18 +72,20 @@
 						= form_tag(alert_path(@conn, :edit, alert.id), method: "get", class: "form-inline") do
 							button.btn.btn-default.btn-sm type="submit" edit
             = form_tag(alert_path(@conn, :delete, alert.id), method: "delete", class: "form-inline") do
-					    = link "del", to: alert_path(@conn, :delete, alert.id), method: :delete, data: [confirm: "Delete alert #{alert.id}. Are you sure?"], class: "btn btn-sm btn-danger"
-
+					    = link "del", to: alert_path(@conn, :delete, alert.id), method: :delete, data: [confirm: "Really delete alert #{alert.name} (id: #{alert.id})?"], class: "btn btn-sm btn-danger"
 
           td.text-right.text-nowrap style="vertical-align: middle;"
 						div
-              b created:
+              b
+								= link "created:", to: alert_path(@conn, :index, context: @context, order: :inserted_at), class: "sort"
               = render_date_relative(alert.inserted_at)
 						div
-              b updated:
+              b
+								= link "updated:", to: alert_path(@conn, :index, context: @context, order: :updated_at), class: "sort"
               = render_date_relative(alert.updated_at)
 						div
-              b last run:
+							b
+              	= link "last run:", to: alert_path(@conn, :index, context: @context, order: :last_run), class: "sort"
               = render_date_relative(alert.last_run)
 
 - else

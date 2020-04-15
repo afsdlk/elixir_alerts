@@ -21,10 +21,10 @@ defmodule AlertsWeb.AlertController do
   end
 
   def reboot(conn, params) do
-    Scheduler.reboot_all_jobs()
+    number_of_jobs = Scheduler.reboot_all_jobs() |> Enum.count()
 
     conn
-    |> put_flash(:info, "Jobs rebooted")
+    |> put_flash(:info, "#{number_of_jobs} jobs were rebooted")
     |> redirect(to: alert_path(conn, :index, %{context: params["context"]}))
   end
 

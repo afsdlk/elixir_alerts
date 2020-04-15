@@ -25,6 +25,8 @@ defmodule Alerts.Scheduler do
 
   def reboot_all_jobs() do
     Alerts.Business.Alerts.reboot_all_jobs()
-    jobs() |> IO.inspect()
+    current_jobs = jobs()
+    current_jobs |> IO.inspect()
+    current_jobs
   end
 end

@@ -37,7 +37,7 @@ defmodule Alerts.Business.Alerts do
 
     DB.Alert
     |> Repo.all()
-    |> Enum.each(&H.save_job/1)
+    |> Enum.map(&H.save_job/1)
   end
 
   def create(params) do

@@ -25,7 +25,7 @@ defmodule AlertsWeb.AlertController do
 
     conn
     |> put_flash(:info, "Jobs rebooted")
-    |> redirect(to: alert_path(conn, :index, params))
+    |> redirect(to: alert_path(conn, :index, %{context: params["context"]}))
   end
 
   def view(conn, %{"id" => alert_id}), do: render(conn, "view.html", alert: Alerts.get!(alert_id))

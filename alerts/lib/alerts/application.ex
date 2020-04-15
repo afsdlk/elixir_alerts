@@ -1,23 +1,18 @@
 defmodule Alerts.Application do
   require Alerts.Scheduler
+  import Supervisor.Spec
+
   use Application
 
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
-    import Supervisor.Spec
-
-    # Define workers and child supervisors to be supervised
-    children = [
+    [
       Alerts.Repo,
-      supervisor(AlertsWeb.Endpoint, []),
+      AlertsWeb.Endpoint |> supervisor([]),
       if(System.get_env() != :test, do: Alerts.Scheduler)
     ]
-
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Alerts.Supervisor]
-    Supervisor.start_link(children, opts)
+    |> Supervisor.start_link(strategy: :one_for_one, name: Alerts.Supervisor)
   end
 
   # Tell Phoenix to update the endpoint configuration

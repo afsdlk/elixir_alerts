@@ -11,7 +11,7 @@ div.text-right
 
   = link "Create alert", to: alert_path(@conn, :new), class: "button btn btn-default btn-success"
 
-  = form_tag alert_path(@conn, :reboot), method: "post", class: "form-inline" do
+  = form_tag alert_path(@conn, :reboot, %{context: @context}), method: "post", class: "form-inline" do
     button.btn.btn-primary type="submit" Reboot jobs
 
 = render AlertsWeb.AlertView, "_tabs.html", conn: @conn, available_contexts: @available_contexts, context: @context, action: :index

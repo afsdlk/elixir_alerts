@@ -78,7 +78,7 @@ defmodule AlertsWeb.AlertController do
   end
 
   def run(conn, params = %{"id" => alert_id}) do
-    {alert, results} = Alerts.run(alert_id)
+    {results, alert} = Alerts.run(alert_id)
 
     {level, msg} =
       case results do

@@ -107,7 +107,7 @@ defmodule Business.LibTest do
   end
 
   test "run updates results_size, status and saves the file creating the folder" do
-    with {run, _} <- fixture_struct() |> Lib.create() |> Lib.run() do
+    with {_, run} <- fixture_struct() |> Lib.create() |> Lib.run() do
       updated_fields = %{
         "query" => """
           (SELECT '#{H.random_name()}' as \"#{H.random_name()}\")
@@ -121,14 +121,14 @@ defmodule Business.LibTest do
       }
 
       pars = run |> fixture_struct(updated_fields)
-      {update, _} = run |> Lib.update(pars)
-      {run_updated, _} |> Lib.run()
+      {_, updated} = run |> Lib.update(pars)
+      {_, run_updated} = updated |> Lib.run()
 
       assert run.results_size == 1
       assert run.status == "bad"
       assert File.exists?(run.path) == true
       assert run.path != run_updated.path
-      assert run.path == update.path
+      assert run.path == updated.path
       assert run_updated.results_size == 3
       assert run_updated.status == "under threshold"
       assert File.exists?(run_updated.path) == true

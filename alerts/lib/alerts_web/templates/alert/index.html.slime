@@ -1,5 +1,5 @@
 h1
-  = link "Alerts", to: alert_path(@conn, :index)
+  = link "ALERTS", to: alert_path(@conn, :index)
   = raw("&rarr;")
   em = @context
 

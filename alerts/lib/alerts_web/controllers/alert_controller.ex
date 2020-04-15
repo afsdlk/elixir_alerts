@@ -14,7 +14,9 @@ defmodule AlertsWeb.AlertController do
       conn,
       "index.html",
       available_contexts:
-        ([context] ++ available_contexts) |> Enum.uniq() |> Enum.sort(&(&1 > &2)),
+        ([context] ++ available_contexts)
+        |> Enum.uniq()
+        |> Enum.sort_by(&:string.lowercase/1, &</2),
       context: context,
       alerts: alerts
     )

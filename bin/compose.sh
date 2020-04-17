@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash #-x
 
 REMOVE_TEST_CONTAINERS=${1:-0}
 

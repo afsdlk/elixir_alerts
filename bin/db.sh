@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash #-x
 
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "${BASE_DIR}/config.sh"

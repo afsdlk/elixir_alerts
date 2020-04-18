@@ -10,7 +10,8 @@ defmodule Alerts.Application do
     [
       Alerts.Repo,
       AlertsWeb.Endpoint |> supervisor([]),
-      if(System.get_env() != :test, do: Alerts.Scheduler)
+      if(System.get_env() != :test, do: Alerts.Scheduler),
+      Alerts.VersionSupervisor |> supervisor([])
     ]
     |> Supervisor.start_link(strategy: :one_for_one, name: Alerts.Supervisor)
   end

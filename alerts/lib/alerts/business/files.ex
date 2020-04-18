@@ -26,21 +26,33 @@ defmodule Alerts.Business.Files do
   def dirname(path),
     do: "#{@base_folder}/#{Slugger.slugify_downcase(path)}"
 
-  def create_folder(%DB.Alert{} = a),
-    do: a.context |> dirname() |> File.mkdir_p!()
+  def create_folder(%DB.Alert{} = a) do
+    with dirname <- a.context |> dirname() do
+      case dirname |> File.exists?() do
+        false ->
+          # creates folder
+          dirname
+          |> File.mkdir_p!()
 
-  def write(%DB.Alert{} = a, content) do
-    fullname(a)
+          # git init
+          a.context
+          |> Alerts.Version.get_or_create_supervised_server()
+          |> GenServer.cast({dirname})
+
+        true ->
+          nil
+      end
+    end
+  end
+
+  def write(%DB.Alert{} = alert, content) do
+    alert
+    |> fullname()
     |> File.open!(@flags)
     |> IO.write(content)
 
-    # Quick and dirty commit to repo per context
-    command =
-      'cd #{dirname(a.context)} && git init && git add * && git commit -a -m "scheduled execution"'
-
-    :os.cmd(command)
-    |> List.to_string()
-    |> String.split(~r{\n}, trim: true)
-    |> IO.inspect()
+    alert.context
+    |> Alerts.Version.get_or_create_supervised_server()
+    |> GenServer.cast({dirname(alert.context), fullname(alert)})
   end
 end

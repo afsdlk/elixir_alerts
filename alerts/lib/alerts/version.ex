@@ -1,5 +1,6 @@
 defmodule Alerts.Version do
   use GenServer
+  require Logger
 
   defp get_init_command(folder),
     do: '''
@@ -29,7 +30,7 @@ defmodule Alerts.Version do
     |> :os.cmd()
     |> List.to_string()
     |> String.split(~r{\n}, trim: true)
-    |> IO.inspect()
+    |> Logger.info()
 
     {:noreply, state}
   end
@@ -40,7 +41,7 @@ defmodule Alerts.Version do
     |> :os.cmd()
     |> List.to_string()
     |> String.split(~r{\n}, trim: true)
-    |> IO.inspect()
+    |> Logger.info()
 
     {:noreply, state}
   end

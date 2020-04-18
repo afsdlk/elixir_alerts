@@ -41,3 +41,9 @@ docker-compose rm -fsv test_postgres && docker-compose up --build test_postgres
 docker exec -it test_postgres bash -c 'echo "select * from book" | psql -U postgres test'
 docker exec -it test_postgres bash -c 'psql -U postgres test'
 docker exec -it test_postgres bash
+
+# sample git
+:os.cmd('cd /files && git log') |> List.to_string |>  String.split(~r{\n}, trim: true)
+
+
+docker run --rm -v "/Users/juanse/Google Drive/experiments/Alerts/files":/var/lib/initial/files -p "8080:80" cirocosta/gitserver-http

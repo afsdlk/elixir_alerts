@@ -11,6 +11,7 @@ RUN apt-get install --yes bash nano less curl inotify-tools
 RUN apt-get install --yes postgresql-client
 RUN apt-get install --yes default-libmysqlclient-dev
 RUN apt-get install --yes unixodbc odbcinst
+RUN apt-get install --yes git-lfs
 
 # ODBC STUFF
 RUN apt-get install --yes odbc-postgresql

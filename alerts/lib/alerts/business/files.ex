@@ -29,6 +29,18 @@ defmodule Alerts.Business.Files do
   def create_folder(%DB.Alert{} = a),
     do: a.context |> dirname() |> File.mkdir_p!()
 
-  def write(%DB.Alert{} = a, content),
-    do: fullname(a) |> File.open!(@flags) |> IO.write(content)
+  def write(%DB.Alert{} = a, content) do
+    fullname(a)
+    |> File.open!(@flags)
+    |> IO.write(content)
+
+    # Quick and dirty commit to repo per context
+    command =
+      'cd #{dirname(a.context)} && git init && git add * && git commit -a -m "scheduled execution"'
+
+    :os.cmd(command)
+    |> List.to_string()
+    |> String.split(~r{\n}, trim: true)
+    |> IO.inspect()
+  end
 end

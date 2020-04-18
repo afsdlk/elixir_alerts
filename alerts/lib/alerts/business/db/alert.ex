@@ -86,7 +86,7 @@ defmodule Alerts.Business.DB.Alert do
 
     alert
     |> C.cast(params, [:name, :description, :schedule, :threshold, :source])
-    |> C.change(context: :string.uppercase(params[:context]))
+    |> C.change(context: :string.uppercase(params[:context] || ""))
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
     |> C.change(status: get_status(:new))

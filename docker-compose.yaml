@@ -25,7 +25,7 @@ services:
         source: ./alerts
         target: /app
       - type: bind
-        source: ./Files
+        source: ./files
         target: /files
       - type: volume
         source: alerts-elixir-home
@@ -37,6 +37,18 @@ services:
     command:
       - ./bin/boot.sh
 
+  # https://github.com/cirocosta/gitserver-http
+  gitlist:
+    image: "davibe/gitlist-docker"
+    container_name: alerts_gitlist
+    volumes:
+      - type: bind
+        source: ./files
+        target: /repos
+    ports:
+      - "8080:80"
+
+  # just for testing -----
   test_mysql:
     build:
       context: .
@@ -56,6 +68,7 @@ services:
         source: ./test_dumps/data
         target: /data
 
+  # just for testing -----
   test_postgres:
     image: postgres:latest
     container_name: test_postgres

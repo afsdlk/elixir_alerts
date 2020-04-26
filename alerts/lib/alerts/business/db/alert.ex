@@ -78,7 +78,7 @@ defmodule Alerts.Business.DB.Alert do
     |> C.validate_required([:last_run, :results_size])
   end
 
-  def new_changeset(), do: new_changeset(%__MODULE__{}, %{})
+  def new_changeset(), do: new_changeset(%__MODULE__{}, %{context: ""})
   def new_changeset(params), do: new_changeset(%__MODULE__{}, params)
 
   def new_changeset(%__MODULE__{} = alert, params_x) do
@@ -86,7 +86,7 @@ defmodule Alerts.Business.DB.Alert do
 
     alert
     |> C.cast(params, [:name, :description, :schedule, :threshold, :source])
-    |> C.change(context: :string.uppercase(params[:context] || ""))
+    |> C.change(context: :string.uppercase(params[:context]))
     |> C.change(inserted_at: nowNaive())
     |> C.change(updated_at: nowNaive())
     |> C.change(status: get_status(:new))

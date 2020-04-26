@@ -40,6 +40,9 @@ RUN mix local.rebar --force
 RUN wget https://github.com/phoenixframework/archives/raw/master/phx_new.ez -P /tmp
 RUN mix archive.install --force /tmp/phx_new.ez
 
+RUN git config --global user.email "git@alerts_elixir.com"
+RUN git config --global user.name "Alerts Elixir"
+
 #RUN curl https://gist.githubusercontent.com/marioBonales/1637696/raw/93a33aa5f1893f46773483250214f8b8b496a270/.bashrc -o /nonexistent/.bashrc
 
 # final stuff

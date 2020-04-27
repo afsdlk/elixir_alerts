@@ -7,7 +7,7 @@ How to RUN it:
 # IMPORTANT, ALL DOCKER COMMANDS ARE PLACED UNDER ./bin, so makes sense to use them from the app root folder
 export PATH=$PATH:./bin
 
-# Run the whole thing (takes a lot because the images are not prebuilt in docker hub)
+# Run the whole thing (takes a lot because the images are not prebuilt in docker hub, and it does a big deal of stuff, like unix odbc instalation)
 compose.sh -d
 
 # The elixir container can be rebuild with help of the following command

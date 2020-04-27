@@ -46,7 +46,6 @@
 						 pre style="max-width:250px;"
 						 	= alert.description
 
-
           td.text-center style="vertical-align: middle;"
 						= render_total(alert.results_size)
 
@@ -64,6 +63,7 @@
 							= form_tag(alert_path(@conn, :csv, alert.id), method: "post", class: "form-inline") do
               	button.btn-link type="submit"
                 	= alert.path
+							= render_history(alert)
 
 					td.text-center style="vertical-align: middle;" nowrap="nowrap"
 						= form_tag(alert_path(@conn, :run, alert.id), method: "post", class: "form-inline") do

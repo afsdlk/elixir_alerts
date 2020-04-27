@@ -1,7 +1,10 @@
-# ELIXIR QUANTUM ODBC DB ALERT APP WITH CONTROL VERSION
 
-Includes two test db containers and a git browser http server
-
+Includes
+  - Phoenix app with odbc configured
+  - Phoenix app database
+  - two test db containers and a git browser http server
+  - Gitlist browser for alerts's data
+  
 ## How to RUN it:
 
 IMPORTANT, ALL DOCKER COMMANDS ARE PLACED UNDER ./bin, so makes sense to use them from the app root folder

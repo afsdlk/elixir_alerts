@@ -70,19 +70,23 @@ exec.sh "MIX_ENV=test mix test --trace"
 ## More commands
 
 ### Test mysql container
+```
 docker-compose rm -fsv test_mysql && docker-compose up --build test_mysql
 exec.sh -uroot test_mysql 'export MYSQL_PWD=mysql; mysql -P 3306  test'
 exec.sh -uroot test_mysql 'export MYSQL_PWD=mysql; echo "select * from book" | mysql -P 3306  test'
 enter.sh -uroot test_mysql
+```
 
 ### Test database postgres
+```
 docker-compose rm -fsv test_postgres && docker-compose up --build test_postgres
 exec.sh test_postgres 'echo "select * from book" | psql -U postgres test'
 exec.sh test_postgres 'psql -U postgres test'
 enter.sh -uroot test_postgres
+```
 
 ### Enter in alerts_gitserver, build specific containers, etc
+```
 enter.sh -uroot alerts_gitlist
 docker-compose up --build gitlist
-docker-compose up --build test_postgres
-docker-compose up --build test_mysql
+```

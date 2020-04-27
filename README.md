@@ -81,6 +81,8 @@ exec.sh test_postgres 'echo "select * from book" | psql -U postgres test'
 exec.sh test_postgres 'psql -U postgres test'
 enter.sh -uroot test_postgres
 
-### Enter in alerts_gitserver, etc
+### Enter in alerts_gitserver, build specific containers, etc
 enter.sh -uroot alerts_gitlist
 docker-compose up --build gitlist
+docker-compose up --build test_postgres
+docker-compose up --build test_mysql

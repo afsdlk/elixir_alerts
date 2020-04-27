@@ -1,49 +1,59 @@
-# Just once
+ELIXIR QUANTUM ODBC DB ALERT APP WITH CONTROL VERSION
 
-# Create new app without docker file
-docker build -t alerts:latest -<<EOF
-FROM elixir:1.10
-EOF
+Includes two test db containers and a git browser http server
 
-# Just once: Create your new phoenix project
-docker container run  --rm -v /Users/juanse/experiments/Alerts:/app -w /app -it alerts:latest bash -c " mix local.hex --force; mix local.rebar --force; mix archive.install --force https://github.com/phoenixframework/archives/raw/master/phx_new.ez; mix phx.new alerts"
+How to RUN it:
 
+# IMPORTANT, ALL DOCKER COMMANDS ARE PLACED UNDER ./bin/
+export PATH=$PATH:./bin
+
+# Run the whole thing
+compose.sh -d
+
+# The elixir container can be rebuild with help of the following command
+docker.sh
+
+# Your docker ps should look a bit like this
+CONTAINER ID        IMAGE                   COMMAND                  CREATED              STATUS              PORTS                               NAMES
+528e090d1658        mysql:latest            "docker-entrypoint.s…"   About a minute ago   Up About a minute   0.0.0.0:3306->3306/tcp, 33060/tcp   test_mysql
+99c06be88e84        postgres:latest         "docker-entrypoint.s…"   About a minute ago   Up About a minute   5432/tcp, 0.0.0.0:5433->5433/tcp    test_postgres
+4bca27f7c956        davibe/gitlist-docker   "/bin/sh -c 'service…"   3 minutes ago        Up About a minute   0.0.0.0:8080->80/tcp                alerts_gitlist
+47370478a43e        alerts_web              "/app/bin/boot.sh ./…"   54 minutes ago       Up About a minute   0.0.0.0:4000->4000/tcp              alerts_phoenix
+e18f6a021555        postgres                "docker-entrypoint.s…"   2 weeks ago          Up About a minute   0.0.0.0:5432->5432/tcp              alerts_db
+
+The app will be accessible under http://localhost:4000
+The git browser will show up under http://localhost:8080
+
+# The data sources have to be configured in your elixir app,
+for instance in you alerts/config/config.exs
+
+config :alerts,
+  data_sources: ...
+
+# Elixir console
 exec.sh "iex --erl '-kernel shell_history enabled' -S mix"
+
+# Run tests
 exec.sh "MIX_ENV=test mix test --trace"
-exec.sh "mix deps.compile file_system"
 
-:odbc.start()
-odbcstring = 'Driver={PostgreSQL Unicode};Server=alerts_db;Database=alerts_dev;Trusted_Connection=False;UID=postgres;PWD=postgres;'
-{:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
-lala = :odbc.param_query(db_pid,'SELECT * FROM alert;',[])
-lala
-:odbc.commit(db_pid, :rollback)
-:odbc.disconnect(db_pid)
-:odbc.stop()
+# TODO
+- ORACLE SUPPORT
+- Perform a git mv upon alert renaming or context change
+- Data delivery channels
 
-  :odbc.start()
-  odbcstring = 'Driver=MySQL ANSI;Server=test_mysql;Trusted_Connection=False;Database=test;UID=root;PWD=mysql;'
-  {:ok,db_pid} = :odbc.connect(odbcstring,[auto_commit: :off])
-  {:selected, columns, rows} = :odbc.param_query(db_pid,'select * from book;',[])
-  rows
-  :odbc.commit(db_pid, :rollback)
-  :odbc.disconnect(db_pid)
-  :odbc.stop()
-
-# test database in mysql
+# Test database mysql
 docker-compose rm -fsv test_mysql && docker-compose up --build test_mysql
-docker exec -it test_mysql bash -c 'export MYSQL_PWD=mysql; echo "select * from book" |  mysql -P 3306  test'
-docker exec -it test_mysql bash -c 'export MYSQL_PWD=mysql;  mysql -P 3306  test'
-docker exec -it test_mysql bash
+exec.sh -uroot test_mysql 'export MYSQL_PWD=mysql; mysql -P 3306  test'
+exec.sh -uroot test_mysql 'export MYSQL_PWD=mysql; echo "select * from book" | mysql -P 3306  test'
+enter.sh -uroot test_mysql
 
-# test database in postgres
+# Test database postgres
 docker-compose rm -fsv test_postgres && docker-compose up --build test_postgres
-docker exec -it test_postgres bash -c 'echo "select * from book" | psql -U postgres test'
-docker exec -it test_postgres bash -c 'psql -U postgres test'
-docker exec -it test_postgres bash
+exec.sh test_postgres 'echo "select * from book" | psql -U postgres test'
+exec.sh test_postgres 'psql -U postgres test'
+enter.sh -uroot test_postgres
 
-# sample git
-:os.cmd('cd /files && git log') |> List.to_string |>  String.split(~r{\n}, trim: true)
+# Enter in alerts_gitserver, etc
+enter.sh -uroot alerts_gitlist
 
-
-docker run --rm -v "/Users/juanse/Google Drive/experiments/Alerts/files":/var/lib/initial/files -p "8080:80" cirocosta/gitserver-http
+docker-compose up --build gitlist

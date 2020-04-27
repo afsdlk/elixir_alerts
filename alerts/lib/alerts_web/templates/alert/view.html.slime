@@ -62,6 +62,11 @@ div.row
 							= form_tag(alert_path(@conn, :csv, @alert.id), method: "post", class: "form-inline") do
 								button.btn-link type="submit"
 									= @alert.path
+					tr
+						th.text-right style="vertical-align:middle;" History
+					  td
+							= render_history(@alert)
+
 
 				= if @alert.results_size || 0 > 0 do
 					tr

@@ -44,7 +44,8 @@ config :alerts,
       DATABASE: "test",
       PORT: 5433,
       UID: "postgres",
-      PWD: "postgres"
+      PWD: "postgres",
+      INITSTMT: "SET TRANSACTION ISOLATION LEVEL READ ONLY"
     ]
   }
 
@@ -53,3 +54,5 @@ config :swarm,
   sync_nodes_timeout: 0
 
 config :alerts, ecto_repos: [Alerts.Repo]
+
+config :alerts, git_browser: "http://localhost:8080/"

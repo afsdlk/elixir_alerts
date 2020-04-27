@@ -17,14 +17,12 @@ defmodule Alerts.Business.Files do
     ([id, Slugger.slugify_downcase(name), Mix.env(), extra] |> Enum.join("-")) <> @extension
   end
 
-  def fullname(%DB.Alert{} = alert),
-    do: fullname(alert.context, alert.name, alert.id)
+  def fullname(%DB.Alert{} = alert), do: fullname(alert.context, alert.name, alert.id)
+  def fullname(context, name, id), do: "#{dirname(context)}/#{filename(id, name)}"
 
-  def fullname(context, name, id),
-    do: "#{dirname(context)}/#{filename(id, name)}"
+  def normalize(context), do: Slugger.slugify_downcase(context)
 
-  def dirname(path),
-    do: "#{@base_folder}/#{Slugger.slugify_downcase(path)}"
+  def dirname(context), do: "#{@base_folder}/#{normalize(context)}"
 
   def create_folder(%DB.Alert{} = a) do
     with dirname <- a.context |> dirname() do

@@ -2,7 +2,7 @@
 Includes
   - Phoenix app with odbc configured
   - Phoenix app database
-  - two db test containers (odbc testing)
+  - Two db test containers (odbc testing)
   - Gitlist browser for alerts's data history
 
 ![sample](./sample.png)
@@ -101,7 +101,7 @@ exec.sh test_postgres 'psql -U postgres test'
 enter.sh -uroot test_postgres
 ```
 
-### Enter in alerts_gitserver, build specific containers, etc
+### Enter into the alerts_gitlist server, build specific containers, etc
 ```
 enter.sh -uroot alerts_gitlist
 docker-compose up --build gitlist

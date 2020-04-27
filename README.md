@@ -2,8 +2,8 @@
 Includes
   - Phoenix app with odbc configured
   - Phoenix app database
-  - two test db containers and a git browser http server
-  - Gitlist browser for alerts's data
+  - two db test containers (odbc testing)
+  - Gitlist browser for alerts's data history
 
 ![sample](./sample.png)
 

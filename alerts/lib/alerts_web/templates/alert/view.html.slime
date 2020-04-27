@@ -57,7 +57,7 @@ div.row
 
 				= if @alert.path do
 			    tr
-				    th.text-right style="vertical-align:middle;" File location
+				    th.text-right style="vertical-align:middle;" Download
 	          td
 							= form_tag(alert_path(@conn, :csv, @alert.id), method: "post", class: "form-inline") do
 								button.btn-link type="submit"

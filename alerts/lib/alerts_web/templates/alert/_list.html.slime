@@ -24,9 +24,7 @@
 				th.text-center
           = link "schedule", to: alert_path(@conn, :index, context: @context, order: :schedule), class: "sort"
 
-				th.text-center
-          = link "File location", to: alert_path(@conn, :index, context: @context, order: :path), class: "sort"
-
+				th.text-center archive
 				th.text-center actions
 				th.text-center dates
 
@@ -60,10 +58,11 @@
 
           td.text-center style="vertical-align: middle; text-overflow: ellipsis;"
             = if alert.path do
-							= form_tag(alert_path(@conn, :csv, alert.id), method: "post", class: "form-inline") do
-              	button.btn-link type="submit"
-                	= alert.path
 							= render_history(alert)
+
+							= form_tag(alert_path(@conn, :csv, alert.id), method: "post", class: "form-inline") do
+								button.btn-link type="submit"
+                	= render_download_icon()
 
 					td.text-center style="vertical-align: middle;" nowrap="nowrap"
 						= form_tag(alert_path(@conn, :run, alert.id), method: "post", class: "form-inline") do

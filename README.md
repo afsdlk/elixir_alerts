@@ -38,7 +38,7 @@ The app will be accessible under http://localhost:4000
 The git browser will show up under http://localhost:8080
 
 ## The data sources have to be configured in your elixir app,
-for instance in you alerts/config/config.exs
+for instance, in your alerts/config/config.exs
 
 ```
 config :alerts,

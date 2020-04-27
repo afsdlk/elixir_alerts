@@ -46,10 +46,14 @@ config :alerts,
 ```
 
 ## Elixir console
+```
 exec.sh "iex --erl '-kernel shell_history enabled' -S mix"
+```
 
 ## Running the tests
+```
 exec.sh "MIX_ENV=test mix test --trace"
+```
 
 ## Some TODOs
 - Support oracle
@@ -61,6 +65,7 @@ exec.sh "MIX_ENV=test mix test --trace"
 - Quantum cron seems to freeze in my laptop when I hibernate
 - Seed with sample alerts
 - Rename test db containers alerts_test_mysql...
+- Provide a docker compose file without db test containers
 
 ## More commands
 

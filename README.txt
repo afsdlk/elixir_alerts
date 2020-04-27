@@ -4,10 +4,10 @@ Includes two test db containers and a git browser http server
 
 How to RUN it:
 
-# IMPORTANT, ALL DOCKER COMMANDS ARE PLACED UNDER ./bin/
+# IMPORTANT, ALL DOCKER COMMANDS ARE PLACED UNDER ./bin, so makes sense to use them from the app root folder
 export PATH=$PATH:./bin
 
-# Run the whole thing
+# Run the whole thing (takes a lot because the images are not prebuilt in docker hub)
 compose.sh -d
 
 # The elixir container can be rebuild with help of the following command
@@ -37,9 +37,13 @@ exec.sh "iex --erl '-kernel shell_history enabled' -S mix"
 exec.sh "MIX_ENV=test mix test --trace"
 
 # TODO
-- ORACLE SUPPORT
+- Support oracle
+- Better tests
 - Perform a git mv upon alert renaming or context change
-- Data delivery channels
+- Provide data delivery
+- Git list to include git log -p file?
+- Better sample databases (books.csv)
+- Quantum cron seems to freeze in my laptop when I hibernate
 
 # Test database mysql
 docker-compose rm -fsv test_mysql && docker-compose up --build test_mysql

@@ -4,10 +4,10 @@ Includes
   - Phoenix app database
   - two test db containers and a git browser http server
   - Gitlist browser for alerts's data
-  
+
 ![sample](./sample.png)
 
-  
+
 ## How to RUN it:
 
 IMPORTANT, ALL DOCKER COMMANDS ARE PLACED UNDER ./bin, so makes sense to use them from the app root folder
@@ -24,7 +24,7 @@ compose.sh -d
 
 (takes a lot because the images are not prebuilt in docker hub, and it does a big deal of stuff, like unix odbc instalation)
 
-## Rebuilding only the elixir container 
+## Rebuilding only the elixir container
 ```
 docker.sh
 ```
@@ -74,6 +74,16 @@ exec.sh "MIX_ENV=test mix test --trace"
 - Provide a docker compose file without db test containers
 
 ## More commands
+```
+enter.sh
+enter.sh -uroot # no space between flag and username
+enter.sh -uroot alerts_db
+db.sh
+db.sh alerts_test
+logs.sh alerts_db
+logs.sh alerts_phoenix
+...
+```
 
 ### Test mysql container
 ```

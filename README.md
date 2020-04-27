@@ -5,6 +5,9 @@ Includes
   - two test db containers and a git browser http server
   - Gitlist browser for alerts's data
   
+![sample](./sample.png)
+
+  
 ## How to RUN it:
 
 IMPORTANT, ALL DOCKER COMMANDS ARE PLACED UNDER ./bin, so makes sense to use them from the app root folder
